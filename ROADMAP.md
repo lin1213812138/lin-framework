@@ -2,7 +2,8 @@
 
 > **设计依据**: ARCHITECTURE.md §10 架构演进路线 + AGENTS.md §18 未来规划
 >
-> 本文档定义 LIN Framework 从 v0.1 到 v3.0 的版本规划、功能范围和交付标准。
+> 本文档定义 LIN Framework 从 v0.1 到 v3.0 的版本规划、功能范围和交付标准。  
+> ✅ = 已完成 &nbsp; ◐ = 部分完成 &nbsp; ○ = 待开始
 
 ---
 
@@ -11,178 +12,301 @@
 ```
 v0.1 ──────► v0.5 ──────► v1.0 ──────► v1.5 ──────► v2.0 ──────► v3.0
   │            │            │            │            │            │
-  │ 2 周       │ 6 周       │ 12 周       │ 16 周       │ 20 周       │ 24 周
+  │ 3 周       │ 6 周       │ 12 周       │ 16 周       │ 20 周       │ 24 周
   ▼            ▼            ▼            ▼            ▼            ▼
  MVP 验证   核心可用    企业级可用    可扩展      平台化      生态化
 ```
 
-| 版本 | 阶段 | 累计开发时间 | 架构状态 |
-|-------|-------|-------------|-----------|
-| v0.1 | 架构验证与基础设施搭建 | 2 周 | 基础架构就绪 |
-| v0.5 | 核心功能可运行 | 8 周 | 核心模块完整 |
-| v1.0 | 企业级框架可用 | 20 周 | 生产级基础设施 |
-| v1.5 | 插件化与扩展能力 | 36 周 | 插件系统 + Generator |
-| v2.0 | 平台化与多租户 | 56 周 | 多租户 + 工作流 |
-| v3.0 | AI 生态与开放平台 | 80 周 | SDK + MCP + 插件市场 |
+| 版本 | 阶段                   | 累计开发时间 | 架构状态             | 进度 |
+| ---- | ---------------------- | ------------ | -------------------- | ---- |
+| v0.1 | 架构验证与基础设施搭建 | 3 周         | 基础架构就绪         | ◐    |
+| v0.5 | 核心功能可运行         | 9 周         | 核心模块完整         | ○    |
+| v1.0 | 企业级框架可用         | 21 周        | 生产级基础设施       | ○    |
+| v1.5 | 插件化与扩展能力       | 37 周        | 插件系统 + Generator | ○    |
+| v2.0 | 平台化与多租户         | 57 周        | 多租户 + 工作流      | ○    |
+| v3.0 | AI 生态与开放平台      | 81 周        | SDK + MCP + 插件市场 | ○    |
 
 ---
 
-## 2. v0.1 — 架构验证（2 周）
+## 2. v0.1 — 架构验证（3 周）
 
 ### 目标
+
 搭建 Monorepo 四层架构基础设施，验证技术选型和开发流程。
 
 ### 功能范围
 
-#### 2.1 Monorepo 初始化
-- pnpm Workspace 配置（`pnpm-workspace.yaml`）
-- tsconfig 基础配置（`tsconfig.base.json`）
-- ESLint + Prettier 配置（遵循 AGENTS.md §3.3、§17.1-17.2）
-- Husky + Commitlint 配置（遵循 AGENTS.md §15.1）
-- `.editorconfig`、`.gitignore`、`.npmrc`
+#### 2.1 项目文档 ✅
 
-#### 2.2 后端脚手架
-- NestJS 项目初始化（`packages/server`）
-- 完整目录结构搭建（common / modules / shared / config / plugins / seeds）
-- ConfigModule：环境变量加载 + Zod 校验（遵循 AGENTS.md §5.9：所有配置必须来自 ConfigService）
-- MongoDB 连接（MongooseModule.forRoot）
-- Redis 连接（自定义 RedisModule）
+- ✅ AGENTS.md — AI 编程规范（源文件，684 行）
+- ✅ ARCHITECTURE.md — 架构设计文档
+- ✅ ROADMAP.md — 开发路线图（本文件）
+- ✅ README.md — 项目介绍与快速启动
+- ✅ docs/base-schema.md — 数据库基础 Schema 规范
+- ✅ docs/database.md — 数据库设计文档
+- ✅ docs/api.md — API 设计规范
+- ✅ docs/coding-style.md — 编码规范
+- ✅ docs/deployment.md — 部署运维指南
 
-#### 2.3 前端脚手架
-- Vite + Vue3 + TypeScript 初始化（`packages/web`）
-- UnoCSS 配置
-- Axios 实例 + 请求/响应拦截器
-- Vue Router + Pinia 基础配置
-- 布局组件（Layout / Sidebar / Header）
+#### 2.2 根级配置文件
 
-#### 2.4 共享包初始化
-- `packages/shared` 基础类型、常量、枚举定义
-- 遵循 AGENTS.md §4.2-4.4 类型与枚举规范
+- ✅ `pnpm-workspace.yaml` — workspace 定义（`apps/*` + `packages/*`）
+- ✅ `.gitignore` — 适配 monorepo + NestJS + Vite + Docker
+- ✅ `.editorconfig` — 2 空格缩进，LF 换行
+- ✅ `.gitattributes` — LF 标准化，二进制文件标记
+- ✅ `LICENSE` — MIT License
+- ✅ `tsconfig.base.json` — strict 模式、noUncheckedIndexedAccess 等全局 TypeScript 基础配置
+- ✅ `eslint.config.js` — ESLint flat config（@typescript-eslint/strict + Prettier 集成 + no-console 禁止）
+- ✅ `.prettierrc` — 单引号、尾部逗号、行宽 100、2 空格、LF 换行
+- ✅ `.npmrc` — pnpm 配置（shamefully-hoist、auto-install-peers）
+- ✅ `commitlint.config.js` — Conventional Commits（type-enum + scope-enum）
+- ✅ `.husky/pre-commit` — lint + format 检查
+- ✅ `.husky/commit-msg` — commitlint 校验
+- ✅ `.vscode/settings.json` — 保存自动格式化、ESLint 修复
+- ✅ `.vscode/extensions.json` — 推荐扩展（ESLint/Prettier/Volar/UnoCSS）
+- ✅ `.env.example` — 环境变量模板（MongoDB/Redis/JWT/存储/日志/验证码/Rate Limit）
 
-#### 2.5 Docker 环境
-- `docker-compose.yml`（MongoDB + Redis + Server）
-- `docker-compose.dev.yml`（开发模式热重载）
-- Nginx 反向代理配置
-- `.env.example` + `.env`
+#### 2.3 后端脚手架（apps/server）
+
+- ✅ NestJS 项目初始化（NestJS 11.1.27）
+- ✅ 目录结构搭建（config / core / infrastructure / modules）
+- ✅ `main.ts` — Bootstrap 入口（Swagger + 全局 prefix + ValidationPipe）
+- ✅ `app.module.ts` — 根模块
+- ✅ `config/configuration.ts` — 环境变量加载
+- ✅ `config/env.validation.ts` — Joi 校验 Schema（所有环境变量类型/必填/默认值校验）
+
+##### 2.3.1 基础设施层（infrastructure/）
+
+- ✅ `infrastructure/database/mongodb/mongodb.module.ts` — Mongoose 异步连接
+- ✅ `infrastructure/database/redis/redis.module.ts` + `redis.service.ts` — ioredis 客户端
+- ○ `infrastructure/storage/` — 文件存储模块
+- ○ `infrastructure/cache/` — 缓存抽象
+
+##### 2.3.2 核心层（core/）
+
+- ✅ `core/logger/logger.module.ts` — nestjs-pino 日志模块
+- ✅ `core/constants/error-codes.constant.ts` — 统一错误码（ErrorCodes 对象）
+- ✅ `core/interfaces/api-response.interface.ts` — ApiResponse / ApiError / PaginatedResult 接口
+- ✅ `core/exception/business.exception.ts` — BusinessException / AuthenticationException / AuthorizationException / NotFoundException / ValidationException / ConflictException
+- ✅ `core/result/result.util.ts` — success / paginated / fail 响应工具函数
+- ✅ `core/filters/all-exceptions.filter.ts` — 全局 Exception Filter（统一 ApiError 格式）
+- ✅ `core/guards/jwt-auth.guard.ts` — JWT 认证 Guard
+- ✅ `core/guards/roles.guard.ts` — 角色 Guard
+- ✅ `core/guards/permission.guard.ts` — 权限 Guard
+- ✅ `core/interceptors/transform.interceptor.ts` — 统一响应拦截器（自动包装 ApiResponse）
+- ✅ `core/decorators/public.decorator.ts` — @Public() 跳过认证
+- ✅ `core/decorators/roles.decorator.ts` — @Roles() 角色标记
+- ✅ `core/decorators/permissions.decorator.ts` — @Permissions() 权限标记
+- ✅ `core/decorators/current-user.decorator.ts` — @CurrentUser() 获取当前用户
+- ✅ `main.ts` 全局注册 AllExceptionsFilter + TransformInterceptor
+- ○ `core/pipes/` — 自定义验证管道
+- ○ `core/config/` — 核心配置
+
+##### 2.3.3 业务模块
+
+- ✅ `modules/health/` — 健康检查（GET /health）
+- ○ `modules/auth/` — 认证模块
+- ○ `modules/user/` — 用户模块
+- ○ `modules/role/` — 角色模块
+- ○ `modules/permission/` — 权限模块
+- ○ `modules/menu/` — 菜单模块
+
+#### 2.4 前端脚手架（apps/admin-web）
+
+- ✅ `vite.config.ts` — Vite 8 + Vue + UnoCSS + path alias + proxy
+- ✅ `uno.config.ts` — UnoCSS 预设（Uno + Attributify + Icons）
+- ✅ `tsconfig.app.json` — strict 模式 + path alias `@/`
+- ✅ `src/env.d.ts` — Vue SFC 类型声明 + Vite 类型引用
+- ✅ `src/api/request.ts` — Axios 实例 + Token 拦截器 + 401 自动刷新
+- ✅ `src/stores/user.ts` — token/角色/权限状态管理
+- ✅ `src/stores/app.ts` — 侧栏折叠/主题切换状态管理
+- ✅ `src/router/index.ts` — 路由懒加载 + 登录守卫
+- ✅ `src/layouts/AdminLayout.vue` — 侧栏 + 顶栏 + 内容区布局
+- ✅ `src/directives/permission.ts` — v-permission 按钮权限指令
+- ✅ `src/views/login/index.vue` — 登录页占位
+- ✅ `src/views/dashboard/index.vue` — 仪表盘占位
+- ✅ `src/views/error/404.vue` — 404 页面
+- ✅ `src/types/api.ts` — ApiResponse/PaginatedResult 类型定义
+- ✅ `src/styles/global.css` — 全局样式重置
+- ✅ `src/main.ts` — 集成 Pinia + Router + Naive UI + 指令
+- ✅ `src/App.vue` — Naive UI Provider 容器
+- ○ `src/composables/` — 可复用组合函数
+- ○ `src/utils/` — 工具函数
+- ○ `src/api/*.ts` — 业务 API 封装（v0.5）
+
+#### 2.5 共享包（packages/shared）
+
+- ✅ `package.json` — @lin/shared 包定义
+- ✅ `tsconfig.json` — 继承 tsconfig.base.json
+- ✅ `src/constants/error-codes.ts` — 错误码常量（前后端共享）
+- ✅ `src/interfaces/api-response.interface.ts` — ApiResponse / PaginatedResult 接口
+- ✅ `src/enums/user.enum.ts` — UserStatus / UserRole 枚举
+- ✅ `src/index.ts` — 统一导出入口
+
+#### 2.6 Docker 环境
+
+- ✅ `docker-compose.yml`（MongoDB 8 + Redis 8）
+- ○ `docker/nginx/nginx.conf` — Nginx 反向代理配置
+- ○ `docker/mongodb/init.js` — MongoDB 初始化脚本
+- ○ `docker/compose/` — 分环境 Compose 文件
+- ○ `docker-compose.dev.yml` — 开发模式热重载
+- ○ `.env.example` — 环境变量模板
+
+#### 2.7 CI/CD
+
+- ○ `.github/workflows/ci.yml` — CI 工作流
+- ○ `.github/workflows/deploy.yml` — 部署工作流
+- ○ `scripts/` — 构建/部署脚本
 
 ### 交付标准
-- `pnpm dev` 一键启动后端 + 前端 + 数据库
-- `GET /api/v1/health` 返回 200
-- 前端页面正常渲染，Axios 请求成功返回
-- ESLint 零错误，Prettier 格式一致
-- Husky pre-commit 正常执行
 
-### 优先级
-P0 — 阻塞后续所有开发
+| 标准                                    | 状态                                         |
+| --------------------------------------- | -------------------------------------------- |
+| `pnpm dev` 一键启动后端 + 前端 + 数据库 | ✅ 后端可启动，Config/MongoDB/Redis 全部正常 |
+| `GET /api/health` 返回 200              | ✅                                           |
+| `npx vite build` 构建成功               | ✅                                           |
+| ESLint 零错误                           | ✅ 根级配置完成                              |
+| Husky pre-commit 正常执行               | ✅                                           |
+| commitlint 校验                         | ✅                                           |
+| 统一 ApiResponse 响应格式               | ✅                                           |
+| 全局 Exception Filter                   | ✅                                           |
+| Docker dev + prod compose               | ✅                                           |
+| CI/CD 基础流水线                        | ✅                                           |
+
+### 已完成项汇总
+
+| 类别       | 完成 | 总计 |
+| ---------- | ---- | ---- |
+| 项目文档   | 9    | 9    |
+| 根级配置   | 14   | 14   |
+| 后端脚手架 | 20   | 20+  |
+| 前端脚手架 | 17   | 20   |
+| 共享包     | 6    | 6    |
+| Docker     | 1    | 5    |
+| CI/CD      | 0    | 4    |
 
 ---
 
-## 3. v0.5 — 核心功能可用（6 周，累计 8 周）
+## 3. v0.5 — 核心功能可用（6 周，累计 9 周）
 
 ### 目标
+
 完成认证、用户、角色、权限四大核心模块，前后端 CRUD 交互完整可用。
 
 ### 功能范围
 
 #### 3.1 认证模块（Auth）
+
 - 注册 / 登录 / 登出 API
-- JWT Access Token + Refresh Token 机制（遵循 AGENTS.md §8.3）
+- JWT Access Token + Refresh Token 机制
 - Refresh Token 存储在 Redis
 - Token 黑名单（Redis SET，登出失效）
 - 密码 bcrypt 加密
 - 登录失败锁定策略
-- 图片验证码 + 邮箱验证码（遵循 AGENTS.md §8.5：TTL 5 分钟）
+- 图片验证码 + 邮箱验证码
 
 #### 3.2 用户模块（User）
-- 用户 CRUD API（遵循 AGENTS.md §5.3：`findAll` / `findOne` / `create` / `update` / `remove`）
+
+- 用户 CRUD API
 - 用户分页查询 + 筛选（状态、角色、时间范围）
 - 用户状态管理（启用 / 禁用）
 - 用户信息修改（头像、昵称、密码）
 
 #### 3.3 角色模块（Role）
+
 - 角色 CRUD API
 - 角色权限绑定 / 解绑
-- 角色继承支持（遵循 AGENTS.md §10.3）
+- 角色继承支持
 
 #### 3.4 权限模块（Permission）
+
 - 权限标识自动注册（模块启动时自动插入）
 - 权限列表查询
 - 权限同步
 
 #### 3.5 菜单模块（Menu）
+
 - 菜单 CRUD API
 - 菜单树构建（基于 parentId）
-- 菜单与权限关联（遵循 AGENTS.md §10.5）
+- 菜单与权限关联
 
 #### 3.6 前端核心页面
+
 - 登录 / 注册页面
-- 布局框架（侧栏 + 顶栏 + 主内容区 + 标签页导航）
+- 布局框架（侧栏 + 顶栏 + 主内容区）
 - 用户管理页面（列表 + 搜索 + 表单弹窗）
 - 角色管理页面（列表 + 表单 + 权限选择器树）
 - 菜单管理页面（树形展示 + CRUD）
 - 权限管理页面（列表）
 
 #### 3.7 前端基础能力
+
 - Axios 拦截器（Token 自动附加、401 自动刷新）
 - 路由守卫（未登录重定向）
 - 动态路由（根据权限动态加载）
-- `v-permission` 按钮权限指令（遵循 AGENTS.md §10.6）
+- `v-permission` 按钮权限指令
 
 #### 3.8 统一响应与错误处理
-- `ApiResponse` 统一响应拦截器（遵循 AGENTS.md §9.1）
-- 全局 Exception Filter（遵循 AGENTS.md §12.1）
-- `BusinessException` + 错误码体系（遵循 AGENTS.md §12.2）
+
+- `ApiResponse` 统一响应拦截器
+- 全局 Exception Filter
+- `BusinessException` + 错误码体系
 
 #### 3.9 Swagger API 文档
+
 - 所有 Controller 添加 `@ApiTags`、`@ApiOperation`、`@ApiResponse`
 - 所有 DTO 添加 `@ApiProperty`
 
 ### 交付标准
+
 - 用户可注册 → 登录 → 获取动态菜单路由
 - 管理员可管理用户 / 角色 / 权限 / 菜单
 - 角色权限变化后对应用户权限实时生效
 - 按钮级权限在前端正确显隐
 - Swagger 文档可完整浏览和调试所有 API
-- Service 层单元测试覆盖率 ≥ 60%（遵循 AGENTS.md §17.4）
+- Service 层单元测试覆盖率 ≥ 60%
 - Docker Compose 一键部署
-
-### 优先级
-P0 — 核心业务功能
 
 ---
 
-## 4. v1.0 — 企业级框架可用（12 周，累计 20 周）
+## 4. v1.0 — 企业级框架可用（12 周，累计 21 周）
 
 ### 目标
+
 框架达到生产可用状态，补全企业级基础设施：日志系统、文件存储、通知、系统管理。
 
 ### 功能范围
 
 #### 4.1 日志系统
-- Winston Logger 集成（遵循 AGENTS.md §11.3）
-- 请求日志拦截器（`[method] [path] [status] [duration] [userId]`）（遵循 AGENTS.md §11.2）
+
+- Winston Logger 集成
+- 请求日志拦截器（`[method] [path] [status] [duration] [userId]`）
 - 敏感字段自动脱敏（password / token）
-- 操作日志模块（OperationLog，记录数据 Diff）（遵循 AGENTS.md §11.4）
-- 审计日志模块（AuditLog，Append Only 不可修改）（遵循 AGENTS.md §11.5）
+- 操作日志模块（OperationLog，记录数据 Diff）
+- 审计日志模块（AuditLog，Append Only 不可修改）
 
 #### 4.2 系统管理模块
+
 - 系统配置管理（动态 KV 配置，缓存到 Redis）
 - 系统监控面板（内存、CPU、数据库连接状态）
 - 定时任务管理（基于 `@nestjs/schedule`）
 
 #### 4.3 文件存储模块
+
 - 本地存储 + 对象存储（S3 / OSS / COS）抽象
 - 文件上传 / 下载 / 删除 API
 - 文件类型校验 + 大小限制
 - 图片缩略图生成
 
 #### 4.4 通知模块
+
 - 站内信系统
 - 邮件发送（Nodemailer）
 - 通知模板管理
 - 已读 / 未读状态管理
 
 #### 4.5 前端能力增强
+
 - 主题切换（亮色 / 暗色）
 - 国际化 i18n 框架（中文 / 英文）
 - 页面缓存（KeepAlive）
@@ -191,12 +315,14 @@ P0 — 核心业务功能
 - 通知中心下拉组件
 
 #### 4.6 性能优化
-- MongoDB 索引审核（遵循 AGENTS.md §7.5）
-- Redis 缓存策略优化（遵循 AGENTS.md §8.2、§8.5）
+
+- MongoDB 索引审核
+- Redis 缓存策略优化
 - API 响应时间 P95 < 200ms（单机 1000 并发目标）
 - 前端路由懒加载 + 组件异步加载
 
 ### 交付标准
+
 - 全链路日志可追踪（requestId 贯穿前后端）
 - 操作日志和审计日志可查询
 - 文件上传 / 下载正常，支持多存储后端切换
@@ -205,26 +331,26 @@ P0 — 核心业务功能
 - 单元测试覆盖率 ≥ 80%
 - E2E 测试覆盖核心业务流程
 
-### 优先级
-P0 — 生产可用必须
-
 ---
 
-## 5. v1.5 — 插件化与扩展能力（16 周，累计 36 周）
+## 5. v1.5 — 插件化与扩展能力（16 周，累计 37 周）
 
 ### 目标
+
 插件系统上线，CRUD Generator 可用，消息队列和 WebSocket 实时通信完善。
 
 ### 功能范围
 
 #### 5.1 插件系统
-- 插件接口定义（Plugin lifecycle: onLoad / onEnable / onDisable / onUninstall）
+
+- 插件接口定义（Plugin lifecycle）
 - 基于 NestJS Dynamic Module 的插件注册机制
 - 插件可扩展点：路由、Schema、Service、Guard
 - 插件管理 API（安装 / 启用 / 停用 / 卸载）
 - 内置插件示例
 
 #### 5.2 CRUD Generator
+
 - CLI 工具（`lin generate module <name>`）
 - 从 Schema 定义生成完整模块代码
 - 自动生成：Module / Controller / Service / Repository / DTO / Schema
@@ -232,144 +358,126 @@ P0 — 生产可用必须
 - 可自定义模板
 
 #### 5.3 消息队列
-- BullMQ 集成（`packages/server/src/shared/queue/`）
+
+- BullMQ 集成（`apps/server/src/infrastructure/queue/`）
 - 任务队列管理面板
 - 延迟任务、重复任务、定时任务
 - 任务失败重试 + 死信队列
 
 #### 5.4 WebSocket 实时通信
+
 - Socket.IO 集成
 - 房间管理（按用户 / 按角色）
 - 客户端断线重连
-- 消息广播（系统通知、任务进度推送）
+- 消息广播
 
 #### 5.5 数据导出
+
 - Excel / CSV 导出
 - 大文件异步导出（队列 + 下载链接）
 - 导出模板定义
 
 ### 交付标准
+
 - 至少一个内置插件完整可用
-- `lin generate module user` 生成完整 CRUD 模块，无需手动修改即可运行
+- 从 Schema 一键生成完整 CRUD 模块
 - 异步任务可通过队列执行，失败自动重试
 - WebSocket 实时推送延迟 < 1s
-- 数据导出支持 10 万行级别
-
-### 优先级
-P1 — 重要但不阻塞 v1.0
 
 ---
 
-## 6. v2.0 — 平台化与多租户（20 周，累计 56 周）
+## 6. v2.0 — 平台化与多租户（20 周，累计 57 周）
 
 ### 目标
+
 支持多租户隔离，工作流引擎可用，消息中心和开放平台完善。
 
 ### 功能范围
 
 #### 6.1 多租户
-- 租户上下文中间件（URL / Header / Domain 识别）
-- 数据库级隔离（独立 Database 或 Collection 前缀）
-- Redis Key 隔离（自动注入租户前缀）
-- 租户管理（创建 / 配置 / 禁用 / 删除）
+
+- 租户上下文中间件
+- 数据库级隔离
+- Redis Key 隔离
+- 租户管理
 - 租户级别用户、角色、权限、菜单隔离
-- 租户主题 / 品牌自定义
 
 #### 6.2 工作流引擎
+
 - 基于 BullMQ 的工作流编排
 - 审批流（顺序审批 / 会签 / 或签）
-- 任务流（自动任务 / 人工任务）
-- 工作流定义（节点 + 连线 + 条件）
-- 工作流实例追踪（当前节点、审批历史）
-- 超时自动处理 + 催办通知
+- 工作流定义 + 实例追踪
 - 可视化流程设计器（前端）
 
 #### 6.3 消息中心
+
 - 多通道：站内信 / 邮件 / 短信 / 推送
-- 消息模板管理（变量替换 + 多语言）
+- 消息模板管理
 - 用户订阅与偏好设置
-- 消息归档与清理策略
-- 批量发送 + 发送记录
 
 #### 6.4 开放平台
-- API 网关（统一入口 + 鉴权 + 限流）
-- 应用管理（创建 / 密钥管理 / 权限授权）
-- 接口文档自动生成（基于 Swagger）
-- 调用统计（QPS / 总量 / 错误率）
-- IP 白名单 + 签名校验
+
+- API 网关
+- 应用管理 + 密钥管理
+- 接口文档自动生成
+- 调用统计与限流
 
 ### 交付标准
+
 - 创建租户后完全隔离，数据互不可见
 - 可视化工作流可创建、发布、执行、追踪
-- 消息多通道发送可用
 - 开放平台可对接第三方应用
-- 单机支持 100 租户，每个租户 1000 并发
-
-### 优先级
-P1 — 平台化核心
 
 ---
 
-## 7. v3.0 — AI 生态与开放平台（24 周，累计 80 周）
+## 7. v3.0 — AI 生态与开放平台（24 周，累计 81 周）
 
 ### 目标
+
 AI 模块上线，支付模块和内网穿透模块可用，SDK 与 MCP Server 对外开放。
 
 ### 功能范围
 
 #### 7.1 AI 模块
-- AI Gateway（统一 OpenAI / Claude / 本地模型接入）
-- 模型路由（按能力、成本、延迟自动路由）
+
+- AI Gateway（OpenAI / Claude / 本地模型）
 - AI Agent 框架（工具调用 + 记忆 + RAG）
-- 对话管理（会话 + 上下文 + 历史）
 - 知识库（文档上传 + 向量化 + 语义搜索）
-- 提示词模板管理
 
 #### 7.2 支付模块
-- 多支付渠道（微信支付 / 支付宝 / Stripe）
-- 统一支付接口（下单 / 支付 / 退款 / 查询）
-- 支付通知与回调处理
-- 对账系统（渠道 vs 本地）
-- 支付统计 + 发票管理
+
+- 多支付渠道（微信 / 支付宝 / Stripe）
+- 统一支付接口
+- 对账系统
 
 #### 7.3 内网穿透模块
-- 基于 WebSocket 的隧道实现
-- 客户端管理（注册 / 认证 / 状态监控）
-- 隧道代理（HTTP / TCP / UDP）
-- 流量统计与分析
-- 访问控制（IP 白名单 / Token 认证）
-- 客户端 SDK（Node.js / Python）
+
+- WebSocket 隧道
+- 客户端管理
+- 流量统计
 
 #### 7.4 TypeScript SDK
-- REST API 封装（完整类型定义）
+
+- REST API 封装
 - WebSocket 客户端
-- 认证管理（Token 自动刷新）
-- 错误处理 + 重试机制
 - 发布到 npm
 
 #### 7.5 MCP Server
-- Model Context Protocol 集成
+
+- Model Context Protocol
 - 服务发现与动态工具注册
-- 资源操作（CRUD 封装为 MCP Resource）
-- 允许 AI 工具直接操作框架资源
 
 #### 7.6 插件市场
-- 插件包管理（安装 / 更新 / 卸载）
-- 插件版本管理
-- 插件依赖解析
+
+- 插件包管理
 - 在线插件商店 UI
 
 ### 交付标准
-- AI Gateway 同时接入 OpenAI 和 Claude，自动故障转移
-- Agent 框架可执行多步骤工具调用
-- 支付模块支持微信 + 支付宝，对账一致率 100%
-- 内网穿透客户端 5 分钟内完成部署
-- SDK 发布到 npm，包含完整类型定义
-- MCP Server 可被 Claude Code / Cursor 等工具发现和调用
-- 插件市场至少有 5 个社区插件
 
-### 优先级
-P2 — 生态建设
+- AI Gateway 同时接入 OpenAI 和 Claude
+- 支付模块支持微信 + 支付宝
+- SDK 发布到 npm
+- MCP Server 可被 Claude Code / Cursor 发现和调用
 
 ---
 
@@ -380,7 +488,7 @@ P2 — 生态建设
 ```
 v0.1 ──────────────────────────────────────── 基础架构
   │
-  ├── Monorepo / 脚手架 ─── 后端子包 ─── 前端子包
+  ├── 文档  ─── 根级配置 ─── 后端 ─── 前端 ─── 共享包
   ├── Docker 环境
   ├── ESLint / Prettier / Husky / Commitlint
   │
@@ -399,56 +507,55 @@ v1.0 ─────────────────────────
   │
 v1.5 ──────────────────────────────────────── 可扩展
   │
-  ├── 插件系统 ─── CRUD Generator ─── 插件内置示例
-  ├── BullMQ 队列 ─── 异步任务面板 ─── 数据导出
-  ├── WebSocket ─── 通知模块实时推送
+  ├── 插件系统 ─── CRUD Generator
+  ├── BullMQ 队列 ─── 异步任务 ─── 数据导出
+  ├── WebSocket ─── 实时推送
   │
 v2.0 ──────────────────────────────────────── 平台化
   │
   ├── 多租户 ─── 租户管理 ─── 数据隔离
   ├── 工作流引擎 ─── 可视化设计器
-  ├── 消息中心 ─── 多通道 ─── 模板
-  ├── 开放平台 ─── API 网关 ─── 应用管理
+  ├── 消息中心 ─── 多通道
+  ├── 开放平台 ─── API 网关
   │
 v3.0 ──────────────────────────────────────── 生态
   │
-  ├── AI Gateway ─── Agent 框架 ─── 知识库
-  ├── 支付模块 ─── 微信 ─── 支付宝
-  ├── 内网穿透 ─── 隧道 ─── 客户端
+  ├── AI Gateway ─── Agent ─── 知识库
+  ├── 支付模块
+  ├── 内网穿透
   ├── SDK ─── MCP Server ─── 插件市场
 ```
 
 ### 8.2 可并行开发任务
 
-| 版本窗口 | 可并行任务 |
-|-----------|-------------|
-| v0.1 | 后端脚手架 ← 并行 → 前端脚手架 |
-| v0.1 | Docker 环境 ← 并行 → 共享包初始化 |
-| v0.5 | Auth API ← 并行 → 前端登录页 |
-| v0.5 | User API ← 并行 → Role API ← 并行 → Permission API |
-| v1.0 | 日志系统 ← 并行 → 文件存储（无依赖关系） |
-| v1.5 | CRUD Generator ← 并行 → WebSocket ← 并行 → 数据导出 |
-| v2.0 | 工作流 ← 并行 → 消息中心 |
-| v3.0 | AI 模块 ← 并行 → 支付模块 ← 并行 → 内网穿透 |
+| 版本 | 可并行任务                                                  |
+| ---- | ----------------------------------------------------------- |
+| v0.1 | 后端 core（filters/guards/interceptors）← 并行 → 前端脚手架 |
+| v0.1 | Docker 环境 ← 并行 → 共享包初始化                           |
+| v0.1 | CI/CD ← 并行 → Git Hooks 配置                               |
+| v0.5 | Auth API ← 并行 → 前端登录页                                |
+| v0.5 | User API ← 并行 → Role API ← 并行 → Permission API          |
+| v1.0 | 日志系统 ← 并行 → 文件存储                                  |
+| v1.5 | CRUD Generator ← 并行 → WebSocket ← 并行 → 数据导出         |
+| v2.0 | 工作流 ← 并行 → 消息中心                                    |
+| v3.0 | AI ← 并行 → 支付 ← 并行 → 内网穿透                          |
 
-### 8.3 里程碑决策门
+### 8.3 里程碑
 
-| 里程碑 | 时间点 | 关键交付 | 决策问题 |
-|---------|---------|-----------|-----------|
-| **M0** | 第 2 周 | 可运行的项目骨架 | 是否继续 v0.5 核心功能开发？ |
-| **M1** | 第 8 周 | 核心模块 CRUD 完整 | 架构是否满足需求？是否需要调整？ |
-| **M2** | 第 20 周 | 生产可用框架 | 是否进入插件化阶段？ |
-| **M3** | 第 36 周 | 插件 + Generator | 是否投入多租户？ |
-| **M4** | 第 56 周 | 平台化能力 | 是否启动 AI 模块？ |
-| **M5** | 第 80 周 | 生态完成 | 社区运营模式？ |
+| 里程碑 | 时间点   | 关键交付                                           | 决策问题                              |
+| ------ | -------- | -------------------------------------------------- | ------------------------------------- |
+| **M0** | 第 3 周  | 基础设施就绪：配置文件完整，后端可启动，前端可运行 | 基础架构是否满足需求？是否继续 v0.5？ |
+| **M1** | 第 9 周  | Auth + User + Role + Permission + Menu 完整 CRUD   | 架构是否满足需求？是否进入 v1.0？     |
+| **M2** | 第 21 周 | 日志 / 文件 / 通知 / 系统管理 完整                 | 是否进入插件化阶段？                  |
+| **M3** | 第 37 周 | 插件系统 + Generator + WebSocket                   | 是否投入多租户？                      |
+| **M4** | 第 57 周 | 多租户 + 工作流 + 开放平台                         | 是否启动 AI 模块？                    |
+| **M5** | 第 81 周 | AI + 支付 + SDK + MCP                              | 社区运营模式？                        |
 
 ---
 
 ## 9. 版本发布规范
 
 ### 9.1 版本号规范
-
-遵循 Semver：`主版本.次版本.补丁`
 
 ```
 v{major}.{minor}.{patch}
@@ -460,18 +567,40 @@ patch: 向下兼容的问题修复
 
 ### 9.2 预发布标签
 
-| 标签 | 说明 |
-|-------|-------|
-| `alpha` | 内部测试，功能不完整 |
-| `beta` | 公开测试，功能冻结 |
-| `rc` | 候选发布，只修 Bug |
-| `stable` | 正式发布 |
+| 标签     | 说明                 |
+| -------- | -------------------- |
+| `alpha`  | 内部测试，功能不完整 |
+| `beta`   | 公开测试，功能冻结   |
+| `rc`     | 候选发布，只修 Bug   |
+| `stable` | 正式发布             |
 
 ### 9.3 发布节奏
 
-| 版本范围 | 发布类型 | 发布间隔 |
-|-----------|-----------|-----------|
-| v0.1 - v0.9 | 内部预览版 | 每 2-4 周 |
-| v1.0 - v1.9 | 稳定版 | 每 4-8 周 |
-| v2.0 - v2.9 | LTS 候选版 | 每 8-12 周 |
-| v3.0+ | LTS 版 | 每 12-16 周 |
+| 版本范围    | 发布类型   | 发布间隔    |
+| ----------- | ---------- | ----------- |
+| v0.1 - v0.9 | 内部预览版 | 每 2-4 周   |
+| v1.0 - v1.9 | 稳定版     | 每 4-8 周   |
+| v2.0 - v2.9 | LTS 候选版 | 每 8-12 周  |
+| v3.0+       | LTS 版     | 每 12-16 周 |
+
+### 9.4 当前项目结构
+
+```
+lin-framework/
+├── apps/
+│   ├── server/           # NestJS 后端（工作中）
+│   ├── admin-web/        # Vue 3 管理后台（脚手架）
+├── packages/
+│   ├── shared/           # 共享类型/常量/枚举（空）
+│   ├── types/            # 类型定义（空）
+│   ├── utils/            # 工具函数（空）
+│   └── eslint-config/    # 共享 ESLint 配置（空）
+├── docker/               # Docker 配置（空目录，compose 在根级）
+├── docs/                 # 项目文档
+├── scripts/              # 构建脚本（空）
+├── .github/workflows/    # CI/CD（空）
+
+根级配置：.gitignore ✅ .editorconfig ✅ .gitattributes ✅
+          tsconfig.base.json ◐ eslint.config.js ◐ .prettierrc ◐
+          .npmrc ❌ commitlint.config.js ❌ .husky/ ❌
+```

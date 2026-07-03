@@ -1,0 +1,64 @@
+services:
+  mongodb:
+    volumes:
+      - mongodb_data:/data/db
+      - ../docker/mongodb/init.js:/docker-entrypoint-initdb.d/init.js:ro
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_ROOT_USER:-admin}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD:-changeme}
+
+  redis:
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD:-changeme}
+
+  server:
+    build:
+      context: ../
+      dockerfile: apps/server/Dockerfile
+      target: production
+    container_name: lin-server
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - MONGODB_URI=mongodb://${MONGO_APP_USER:-lin_app}:${MONGO_APP_PASSWORD:-changeme}@mongodb:27017/lin_framework?authSource=admin
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - REDIS_PASSWORD=${REDIS_PASSWORD:-changeme}
+      - JWT_SECRET=${JWT_SECRET}
+      - LOG_LEVEL=${LOG_LEVEL:-info}
+    depends_on:
+      - mongodb
+      - redis
+
+  web:
+    build:
+      context: ../
+      dockerfile: apps/admin-web/Dockerfile
+      target: production
+    container_name: lin-web
+    restart: unless-stopped
+    environment:
+      - NODE_ENV=production
+    depends_on:
+      - server
+
+  nginx:
+    image: nginx:alpine
+    container_name: lin-nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ../docker/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - server
+      - web
+
+volumes:
+  mongodb_data:
+  redis_data:

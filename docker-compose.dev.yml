@@ -1,0 +1,10 @@
+services:
+  mongodb:
+    ports:
+      - "27017:27017"
+    volumes:
+      - ./docker/mongodb/init.js:/docker-entrypoint-initdb.d/init.js:ro
+
+  redis:
+    ports:
+      - "6379:6379"

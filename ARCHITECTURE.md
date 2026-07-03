@@ -23,6 +23,7 @@ Infrastructure Layer (Repository / Adapter / External)
 ```
 
 **核心约束**：
+
 - 外层依赖内层，内层绝不依赖外层（AGENTS.md 2.2）
 - 禁止跨层调用：Controller → Service → Repository，不可跳过（AGENTS.md 5.9）
 - Controller 不得直接访问 Repository 或 Model（AGENTS.md 5.9）
@@ -38,12 +39,12 @@ Infrastructure Layer (Repository / Adapter / External)
 
 使用 pnpm Workspace 管理，包含以下子包（AGENTS.md 2.3）：
 
-| 包 | 职责 |
-|------|--------|
-| `packages/server` | NestJS 后端应用 |
-| `packages/web` | Vue3 前端应用 |
+| 包                | 职责                                 |
+| ----------------- | ------------------------------------ |
+| `packages/server` | NestJS 后端应用                      |
+| `packages/web`    | Vue3 前端应用                        |
 | `packages/shared` | 前后端共享类型、常量、枚举、工具函数 |
-| `packages/sdk` | 对外 SDK（后续版本） |
+| `packages/sdk`    | 对外 SDK（后续版本）                 |
 
 ### 1.4 模块化原则
 
@@ -77,6 +78,7 @@ modules/{module}/
 ### 2.2 Module 职责
 
 Module 只做依赖注册，不包含业务逻辑（AGENTS.md 5.2）：
+
 - 使用 `forRoot` / `forFeature` 模式注册 Mongoose Model
 - 跨模块需要的 Service 通过 `exports` 暴露
 - `Global` 装饰器需谨慎使用，只对真正全局模块使用
@@ -84,6 +86,7 @@ Module 只做依赖注册，不包含业务逻辑（AGENTS.md 5.2）：
 ### 2.3 Controller 职责
 
 Controller 是 Presentation 层入口（AGENTS.md 5.3）：
+
 - 接收请求、参数校验、调用 Service、返回响应
 - 方法名对应 HTTP 语义：`findAll` / `findOne` / `create` / `update` / `remove`
 - 路由路径使用复数形式：`/users` 而非 `/user`
@@ -94,6 +97,7 @@ Controller 是 Presentation 层入口（AGENTS.md 5.3）：
 ### 2.4 Service 职责
 
 Service 是 Application 层核心（AGENTS.md 5.4）：
+
 - 业务逻辑编排、事务管理、领域规则校验
 - 方法名清晰表达业务意图：`activateUser` / `resetPassword` / `syncPermissions`
 - 所有业务逻辑必须放在 Service
@@ -102,6 +106,7 @@ Service 是 Application 层核心（AGENTS.md 5.4）：
 ### 2.5 Repository 职责
 
 Repository 是 Infrastructure 层组件（AGENTS.md 5.5）：
+
 - 所有数据库操作必须通过 Repository
 - Repository 不得包含业务逻辑
 - 提供标准 CRUD 方法 + 自定义查询方法
@@ -110,9 +115,7 @@ Repository 是 Infrastructure 层组件（AGENTS.md 5.5）：
 ```typescript
 @Injectable()
 export class UserRepository {
-  constructor(
-    @InjectModel(User.name) private readonly userModel: Model<UserDocument>,
-  ) {}
+  constructor(@InjectModel(User.name) private readonly userModel: Model<UserDocument>) {}
 
   async findById(id: string): Promise<User | null> {
     return this.userModel.findById(id).lean();
@@ -157,31 +160,31 @@ Exception Filter    → 捕获异常，统一错误格式输出
 
 依据 AGENTS.md 13.1 目录规范，全局基础设施位于 `packages/server/src/common/`：
 
-| 目录 | 职责 | 对应 AGENTS.md 章节 |
-|----------|--------|----------------------|
-| `constants/` | 全局常量 | 4.4 |
-| `enums/` | 全局枚举 | 4.3 |
-| `interfaces/` | 全局接口 | 5.8 |
-| `decorators/` | 自定义装饰器 | — |
-| `filters/` | Exception Filters | 12.1 |
-| `guards/` | Auth Guards | — |
-| `interceptors/` | 拦截器 | — |
-| `pipes/` | Validation Pipes | — |
-| `middleware/` | 中间件 | — |
-| `utils/` | 工具函数 | — |
+| 目录            | 职责              | 对应 AGENTS.md 章节 |
+| --------------- | ----------------- | ------------------- |
+| `constants/`    | 全局常量          | 4.4                 |
+| `enums/`        | 全局枚举          | 4.3                 |
+| `interfaces/`   | 全局接口          | 5.8                 |
+| `decorators/`   | 自定义装饰器      | —                   |
+| `filters/`      | Exception Filters | 12.1                |
+| `guards/`       | Auth Guards       | —                   |
+| `interceptors/` | 拦截器            | —                   |
+| `pipes/`        | Validation Pipes  | —                   |
+| `middleware/`   | 中间件            | —                   |
+| `utils/`        | 工具函数          | —                   |
 
 ### 2.8 Shared 共享层
 
 位于 `packages/server/src/shared/`，提供通用服务（AGENTS.md 13.1）：
 
-| 模块 | 职责 |
-|--------|--------|
-| `database/` | 数据库连接与基类 Repository |
-| `redis/` | Redis 连接与缓存服务 |
-| `queue/` | 消息队列（BullMQ，后续版本） |
-| `logger/` | 日志服务（基于 Winston） |
-| `cache/` | 缓存服务抽象 |
-| `pagination/` | 分页工具 |
+| 模块          | 职责                         |
+| ------------- | ---------------------------- |
+| `database/`   | 数据库连接与基类 Repository  |
+| `redis/`      | Redis 连接与缓存服务         |
+| `queue/`      | 消息队列（BullMQ，后续版本） |
+| `logger/`     | 日志服务（基于 Winston）     |
+| `cache/`      | 缓存服务抽象                 |
+| `pagination/` | 分页工具                     |
 
 ---
 
@@ -190,6 +193,7 @@ Exception Filter    → 捕获异常，统一错误格式输出
 ### 3.1 技术选型
 
 依据 AGENTS.md 第 6 章定义：
+
 - Vue3 Composition API + `<script setup lang="ts">`
 - Pinia 状态管理（Setup Store 语法）
 - Vue Router（懒加载 + 路由守卫）
@@ -264,11 +268,11 @@ App.vue
 
 ```typescript
 interface ApiResponse<T = unknown> {
-  code: number;        // 业务状态码
-  message: string;     // 提示信息
-  data: T;             // 响应数据
-  timestamp: number;   // 时间戳
-  requestId: string;   // 请求追踪 ID
+  code: number; // 业务状态码
+  message: string; // 提示信息
+  data: T; // 响应数据
+  timestamp: number; // 时间戳
+  requestId: string; // 请求追踪 ID
 }
 ```
 
@@ -290,36 +294,37 @@ interface ApiError {
 
 依据 AGENTS.md 第 9.4 节：
 
-| 方法 | 路径 | 说明 |
-|--------|-------|------|
-| GET | `/api/v1/users` | 分页查询用户列表 |
-| GET | `/api/v1/users/:id` | 查询单个用户 |
-| POST | `/api/v1/users` | 创建用户 |
-| PATCH | `/api/v1/users/:id` | 部分更新用户 |
-| DELETE | `/api/v1/users/:id` | 删除用户 |
-| POST | `/api/v1/users/:id/activate` | 自定义操作（动词） |
+| 方法   | 路径                         | 说明               |
+| ------ | ---------------------------- | ------------------ |
+| GET    | `/api/v1/users`              | 分页查询用户列表   |
+| GET    | `/api/v1/users/:id`          | 查询单个用户       |
+| POST   | `/api/v1/users`              | 创建用户           |
+| PATCH  | `/api/v1/users/:id`          | 部分更新用户       |
+| DELETE | `/api/v1/users/:id`          | 删除用户           |
+| POST   | `/api/v1/users/:id/activate` | 自定义操作（动词） |
 
 ### 4.4 HTTP 状态码
 
 依据 AGENTS.md 第 9.3 节：
 
-| 状态码 | 场景 |
-|--------|--------|
-| 200 | 成功 |
-| 201 | 创建成功 |
-| 204 | 删除成功（无返回体） |
-| 400 | 参数校验失败 |
-| 401 | 未认证 |
-| 403 | 无权限 |
-| 404 | 资源不存在 |
-| 409 | 资源冲突 |
-| 422 | 业务规则校验失败 |
-| 429 | 请求频率限制 |
-| 500 | 服务器内部错误 |
+| 状态码 | 场景                 |
+| ------ | -------------------- |
+| 200    | 成功                 |
+| 201    | 创建成功             |
+| 204    | 删除成功（无返回体） |
+| 400    | 参数校验失败         |
+| 401    | 未认证               |
+| 403    | 无权限               |
+| 404    | 资源不存在           |
+| 409    | 资源冲突             |
+| 422    | 业务规则校验失败     |
+| 429    | 请求频率限制         |
+| 500    | 服务器内部错误       |
 
 ### 4.5 Swagger 要求
 
 依据 AGENTS.md 第 9.5 节：
+
 - 所有 Controller 必须添加 `@ApiTags()`
 - 所有方法必须添加 `@ApiOperation({ summary, description })`
 - DTO 属性必须添加 `@ApiProperty()`
@@ -348,6 +353,7 @@ User → Role → Permission
 ### 5.2 内置角色
 
 依据 AGENTS.md 第 10.3 节：
+
 - `super_admin` — 超级管理员（拥有所有权限）
 - `admin` — 管理员
 - `user` — 普通用户
@@ -378,24 +384,24 @@ v-permission (前端)  → 按钮级权限控制
 
 依据 AGENTS.md 第 11.1 节：
 
-| 级别 | 用途 |
-|-------|--------|
-| `LOG` | 常规操作日志 |
+| 级别    | 用途                     |
+| ------- | ------------------------ |
+| `LOG`   | 常规操作日志             |
 | `DEBUG` | 调试信息（生产环境关闭） |
-| `INFO` | 关键业务流程记录 |
-| `WARN` | 异常但不影响流程 |
-| `ERROR` | 业务异常和系统异常 |
+| `INFO`  | 关键业务流程记录         |
+| `WARN`  | 异常但不影响流程         |
+| `ERROR` | 业务异常和系统异常       |
 
 ### 6.2 日志分类
 
 依据 AGENTS.md 第 11.2-11.5 节：
 
-| 日志类型 | 记录内容 | 存储位置 |
-|-----------|-----------|----------|
-| 请求日志 | `[method] [path] [status] [duration] [userId]` | 文件 / ELK |
-| 错误日志 | error message / stack / requestId / userId / context | 文件 / ELK |
-| 操作日志 | 用户关键操作、数据变更 Diff | MongoDB `operation_logs` |
-| 审计日志 | 权限变更、角色变更、删除数据（Append Only） | MongoDB `audit_logs` |
+| 日志类型 | 记录内容                                             | 存储位置                 |
+| -------- | ---------------------------------------------------- | ------------------------ |
+| 请求日志 | `[method] [path] [status] [duration] [userId]`       | 文件 / ELK               |
+| 错误日志 | error message / stack / requestId / userId / context | 文件 / ELK               |
+| 操作日志 | 用户关键操作、数据变更 Diff                          | MongoDB `operation_logs` |
+| 审计日志 | 权限变更、角色变更、删除数据（Append Only）          | MongoDB `audit_logs`     |
 
 ---
 
@@ -404,6 +410,7 @@ v-permission (前端)  → 按钮级权限控制
 ### 7.1 全局 Exception Filter
 
 依据 AGENTS.md 第 12.1 节：
+
 - 捕获所有未处理异常
 - 统一转换为 `ApiError` 格式返回
 - 区分业务异常（`BusinessException`）和系统异常（`SystemException`）
@@ -412,9 +419,9 @@ v-permission (前端)  → 按钮级权限控制
 
 依据 AGENTS.md 第 12.2 节：
 
-| 范围 | 分类 |
-|---------|---------|
-| 0 | 成功 |
+| 范围        | 分类     |
+| ----------- | -------- |
+| 0           | 成功     |
 | 10000-10999 | 通用错误 |
 | 11000-11999 | 认证错误 |
 | 12000-12999 | 权限错误 |
@@ -425,14 +432,14 @@ v-permission (前端)  → 按钮级权限控制
 依据 AGENTS.md 第 12.3 节，必须使用以下自定义异常类：
 
 ```typescript
-throw new BusinessException(ErrorCodes.USER_NOT_FOUND);      // ✅
-throw new ValidationException('参数校验失败');                   // ✅
-throw new AuthenticationException('未登录');                    // ✅
-throw new AuthorizationException('无权限');                     // ✅
-throw new NotFoundException('资源不存在');                       // ✅
-throw new ConflictException('资源冲突');                        // ✅
+throw new BusinessException(ErrorCodes.USER_NOT_FOUND); // ✅
+throw new ValidationException('参数校验失败'); // ✅
+throw new AuthenticationException('未登录'); // ✅
+throw new AuthorizationException('无权限'); // ✅
+throw new NotFoundException('资源不存在'); // ✅
+throw new ConflictException('资源冲突'); // ✅
 
-throw new Error('user not found');                            // ❌ 禁止
+throw new Error('user not found'); // ❌ 禁止
 ```
 
 ---
@@ -442,6 +449,7 @@ throw new Error('user not found');                            // ❌ 禁止
 ### 8.1 MongoDB
 
 依据 AGENTS.md 第 7 章：
+
 - Collection 命名：小写 + 下划线（AGENTS.md 7.1）
 - Schema 必须使用 `@Schema({ timestamps: true })`（AGENTS.md 7.2、7.3）
 - 所有文档支持软删除：`isDeleted` / `deletedAt` / `deletedBy`（AGENTS.md 7.4）
@@ -452,6 +460,7 @@ throw new Error('user not found');                            // ❌ 禁止
 ### 8.2 Redis
 
 依据 AGENTS.md 第 8 章：
+
 - Key 命名格式：`{project}:{module}:{entity}:{id}:{field}`（AGENTS.md 8.1）
 - 缓存 Key 统一在 `constants/cache-keys.ts` 中管理（AGENTS.md 8.2）
 - Access Token 使用 JWT（无状态），Refresh Token 存储在 Redis（AGENTS.md 8.3）
@@ -488,9 +497,9 @@ lin-framework/
 
 依据 AGENTS.md 第 18 章未来规划：
 
-| 阶段 | 版本 | 新增架构组件 |
-|-------|-------|--------------|
-| 第一阶段 | v0.1-v1.0 | 四层架构、RBAC、日志系统、文件存储、通知 |
-| 第二阶段 | v1.5 | 插件系统、CRUD Generator、BullMQ 消息队列、WebSocket |
-| 第三阶段 | v2.0 | 多租户隔离、工作流引擎、开放平台 |
-| 第四阶段 | v3.0 | AI Gateway、支付模块、内网穿透、SDK、MCP Server |
+| 阶段     | 版本      | 新增架构组件                                         |
+| -------- | --------- | ---------------------------------------------------- |
+| 第一阶段 | v0.1-v1.0 | 四层架构、RBAC、日志系统、文件存储、通知             |
+| 第二阶段 | v1.5      | 插件系统、CRUD Generator、BullMQ 消息队列、WebSocket |
+| 第三阶段 | v2.0      | 多租户隔离、工作流引擎、开放平台                     |
+| 第四阶段 | v3.0      | AI Gateway、支付模块、内网穿透、SDK、MCP Server      |

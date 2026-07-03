@@ -214,23 +214,23 @@ export class UserSchema {
 
 ## 字段说明
 
-| 字段 | 类型 | 说明 |
-|------|------|------|
-| `_id` | string | UUID v4 字符串，替代 MongoDB 自增 ObjectId |
-| `creator` | string | 创建人的显示名称（冗余存储，防止用户删除后丢失） |
-| `creatorId` | string | 创建人用户 ID |
-| `updater` | string | 最后更新人的显示名称（冗余存储） |
-| `updaterId` | string | 最后更新人用户 ID |
-| `createDate` | number | 创建时间，Unix 毫秒时间戳 |
-| `updateDate` | number | 最后更新时间，Unix 毫秒时间戳 |
-| `isDeleted` | boolean | 软删除标记，默认 false |
-| `deletedAt` | number | 删除时间戳（可选） |
-| `deletedBy` | string | 删除人用户 ID（可选） |
+| 字段         | 类型    | 说明                                             |
+| ------------ | ------- | ------------------------------------------------ |
+| `_id`        | string  | UUID v4 字符串，替代 MongoDB 自增 ObjectId       |
+| `creator`    | string  | 创建人的显示名称（冗余存储，防止用户删除后丢失） |
+| `creatorId`  | string  | 创建人用户 ID                                    |
+| `updater`    | string  | 最后更新人的显示名称（冗余存储）                 |
+| `updaterId`  | string  | 最后更新人用户 ID                                |
+| `createDate` | number  | 创建时间，Unix 毫秒时间戳                        |
+| `updateDate` | number  | 最后更新时间，Unix 毫秒时间戳                    |
+| `isDeleted`  | boolean | 软删除标记，默认 false                           |
+| `deletedAt`  | number  | 删除时间戳（可选）                               |
+| `deletedBy`  | string  | 删除人用户 ID（可选）                            |
 
 ### 与原有设计的差异
 
-| 原有设计 | 新设计 | 原因 |
-|----------|--------|------|
-| `_id: ObjectId` | `_id: string (UUID)` | 分布式系统避免 ID 冲突，前端无需处理 ObjectId 转换 |
-| `@Schema({ timestamps: true })` | 显式 `createDate` / `updateDate` | 统一字段名和类型，使用 double 时间戳便于跨语言处理 |
-| Mongoose 自动管理 | 手动维护 | 可在 Service 层统一赋值，保证 creator/updater 可追溯 |
+| 原有设计                        | 新设计                           | 原因                                                 |
+| ------------------------------- | -------------------------------- | ---------------------------------------------------- |
+| `_id: ObjectId`                 | `_id: string (UUID)`             | 分布式系统避免 ID 冲突，前端无需处理 ObjectId 转换   |
+| `@Schema({ timestamps: true })` | 显式 `createDate` / `updateDate` | 统一字段名和类型，使用 double 时间戳便于跨语言处理   |
+| Mongoose 自动管理               | 手动维护                         | 可在 Service 层统一赋值，保证 creator/updater 可追溯 |

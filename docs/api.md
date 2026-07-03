@@ -25,11 +25,11 @@ DELETE /api/v1/users/:id
 
 ```typescript
 interface ApiResponse<T = unknown> {
-  code: number;        // 业务状态码，0 表示成功
-  message: string;     // 提示信息
-  data: T;             // 响应数据
-  timestamp: number;   // Unix 时间戳
-  requestId: string;   // 请求追踪 ID（全链路追踪）
+  code: number; // 业务状态码，0 表示成功
+  message: string; // 提示信息
+  data: T; // 响应数据
+  timestamp: number; // Unix 时间戳
+  requestId: string; // 请求追踪 ID（全链路追踪）
 }
 ```
 
@@ -97,31 +97,31 @@ interface ApiError {
 
 依据 AGENTS.md §9.3：
 
-| 状态码 | 场景 | 说明 |
-|--------|------|------|
-| 200 | 成功 | 查询、更新成功 |
-| 201 | 创建成功 | POST 创建资源 |
-| 204 | 删除成功 | DELETE 无返回体 |
-| 400 | 参数校验失败 | `class-validator` 校验未通过 |
-| 401 | 未认证 | 缺少 Token 或 Token 过期 |
-| 403 | 无权限 | Token 有效但权限不足 |
-| 404 | 资源不存在 | 请求的资源未找到 |
-| 409 | 资源冲突 | 用户名/邮箱已存在等 |
-| 422 | 业务规则校验失败 | 业务流程不满足前置条件 |
-| 429 | 请求频率限制 | 超过速率限制阈值 |
-| 500 | 服务器内部错误 | 未捕获的系统异常 |
+| 状态码 | 场景             | 说明                         |
+| ------ | ---------------- | ---------------------------- |
+| 200    | 成功             | 查询、更新成功               |
+| 201    | 创建成功         | POST 创建资源                |
+| 204    | 删除成功         | DELETE 无返回体              |
+| 400    | 参数校验失败     | `class-validator` 校验未通过 |
+| 401    | 未认证           | 缺少 Token 或 Token 过期     |
+| 403    | 无权限           | Token 有效但权限不足         |
+| 404    | 资源不存在       | 请求的资源未找到             |
+| 409    | 资源冲突         | 用户名/邮箱已存在等          |
+| 422    | 业务规则校验失败 | 业务流程不满足前置条件       |
+| 429    | 请求频率限制     | 超过速率限制阈值             |
+| 500    | 服务器内部错误   | 未捕获的系统异常             |
 
 ### 1.5 错误码
 
 依据 AGENTS.md §12.2：
 
-| 范围 | 分类 | 说明 |
-|------|------|------|
-| 0 | 成功 | |
-| 10000-10999 | 通用错误 | VALIDATION_FAILED, NOT_FOUND 等 |
+| 范围        | 分类     | 说明                                       |
+| ----------- | -------- | ------------------------------------------ |
+| 0           | 成功     |                                            |
+| 10000-10999 | 通用错误 | VALIDATION_FAILED, NOT_FOUND 等            |
 | 11000-11999 | 认证错误 | UNAUTHORIZED, TOKEN_EXPIRED, TOKEN_INVALID |
-| 12000-12999 | 权限错误 | FORBIDDEN |
-| 20000-29999 | 业务错误 | 各模块业务异常 |
+| 12000-12999 | 权限错误 | FORBIDDEN                                  |
+| 20000-29999 | 业务错误 | 各模块业务异常                             |
 
 ### 1.6 认证方式
 
@@ -170,11 +170,12 @@ Token 通过登录接口获取，过期后使用 Refresh Token 刷新。
 ```
 
 **错误码**:
-| code | message | 场景 |
-|------|---------|------|
+
+| code  | message             | 场景               |
+| ----- | ------------------- | ------------------ |
 | 20002 | user already exists | 用户名或邮箱已存在 |
-| 10001 | validation failed | 参数校验失败 |
-| 11002 | captcha invalid | 验证码错误或过期 |
+| 10001 | validation failed   | 参数校验失败       |
+| 11002 | captcha invalid     | 验证码错误或过期   |
 
 ---
 
@@ -209,12 +210,13 @@ Token 通过登录接口获取，过期后使用 Refresh Token 刷新。
 ```
 
 **错误码**:
-| code | message | 场景 |
-|------|---------|------|
-| 20003 | password incorrect | 密码错误 |
-| 11000 | unauthorized | 账号已禁用 |
-| 11002 | captcha invalid | 验证码错误 |
-| 11003 | account locked | 登录失败次数过多已锁定 |
+
+| code  | message            | 场景                   |
+| ----- | ------------------ | ---------------------- |
+| 20003 | password incorrect | 密码错误               |
+| 11000 | unauthorized       | 账号已禁用             |
+| 11002 | captcha invalid    | 验证码错误             |
+| 11003 | account locked     | 登录失败次数过多已锁定 |
 
 ---
 
@@ -246,9 +248,10 @@ Token 通过登录接口获取，过期后使用 Refresh Token 刷新。
 ```
 
 **错误码**:
-| code | message | 场景 |
-|------|---------|------|
-| 11001 | token expired | Refresh Token 过期 |
+
+| code  | message       | 场景                         |
+| ----- | ------------- | ---------------------------- |
+| 11001 | token expired | Refresh Token 过期           |
 | 11002 | token invalid | Refresh Token 无效或已被撤销 |
 
 ---
@@ -335,17 +338,17 @@ Token 通过登录接口获取，过期后使用 Refresh Token 刷新。
 
 **Query 参数**:
 
-| 参数 | 类型 | 必填 | 说明 |
-|------|------|------|------|
-| page | number | 否 | 页码，默认 1 |
-| limit | number | 否 | 每页条数，默认 20，最大 100 |
-| sort | string | 否 | 排序字段，默认 createdAt |
-| order | asc/desc | 否 | 排序方向，默认 desc |
-| keyword | string | 否 | 搜索关键字（匹配用户名/邮箱/昵称） |
-| status | string | 否 | 筛选状态：active/inactive/disabled |
-| roleId | string | 否 | 筛选角色 |
-| startDate | string | 否 | 创建时间起始 |
-| endDate | string | 否 | 创建时间结束 |
+| 参数      | 类型     | 必填 | 说明                               |
+| --------- | -------- | ---- | ---------------------------------- |
+| page      | number   | 否   | 页码，默认 1                       |
+| limit     | number   | 否   | 每页条数，默认 20，最大 100        |
+| sort      | string   | 否   | 排序字段，默认 createdAt           |
+| order     | asc/desc | 否   | 排序方向，默认 desc                |
+| keyword   | string   | 否   | 搜索关键字（匹配用户名/邮箱/昵称） |
+| status    | string   | 否   | 筛选状态：active/inactive/disabled |
+| roleId    | string   | 否   | 筛选角色                           |
+| startDate | string   | 否   | 创建时间起始                       |
+| endDate   | string   | 否   | 创建时间结束                       |
 
 **Response** (200):
 
@@ -362,9 +365,7 @@ Token 通过登录接口获取，过期后使用 Refresh Token 刷新。
         "nickname": "超级管理员",
         "avatar": null,
         "status": "active",
-        "roles": [
-          { "_id": "...", "name": "super_admin" }
-        ],
+        "roles": [{ "_id": "...", "name": "super_admin" }],
         "lastLoginAt": "2024-06-27T10:00:00Z",
         "createdAt": "2024-01-01T00:00:00Z"
       }
@@ -397,9 +398,7 @@ Token 通过登录接口获取，过期后使用 Refresh Token 刷新。
     "avatar": null,
     "phone": null,
     "status": "active",
-    "roles": [
-      { "_id": "...", "name": "super_admin", "permissions": ["*:*"] }
-    ],
+    "roles": [{ "_id": "...", "name": "super_admin", "permissions": ["*:*"] }],
     "directPermissions": [],
     "lastLoginAt": "2024-06-27T10:00:00Z",
     "createdAt": "2024-01-01T00:00:00Z"
@@ -506,10 +505,11 @@ Token 通过登录接口获取，过期后使用 Refresh Token 刷新。
 ```
 
 **错误码**:
-| code | message | 场景 |
-|------|---------|------|
-| 20003 | password incorrect | 旧密码错误 |
-| 10001 | validation failed | 密码强度不足 |
+
+| code  | message            | 场景         |
+| ----- | ------------------ | ------------ |
+| 20003 | password incorrect | 旧密码错误   |
+| 10001 | validation failed  | 密码强度不足 |
 
 ---
 
@@ -660,10 +660,11 @@ Token 通过登录接口获取，过期后使用 Refresh Token 刷新。
 **Response** (204): 无返回体
 
 **错误码**:
-| code | message | 场景 |
-|------|---------|------|
-| 20004 | cannot delete system role | 系统内置角色 |
-| 20005 | role in use | 角色已被用户绑定 |
+
+| code  | message                   | 场景             |
+| ----- | ------------------------- | ---------------- |
+| 20004 | cannot delete system role | 系统内置角色     |
+| 20005 | role in use               | 角色已被用户绑定 |
 
 ---
 
@@ -841,10 +842,10 @@ Token 通过登录接口获取，过期后使用 Refresh Token 刷新。
 
 **Request**: `multipart/form-data`
 
-| 字段 | 类型 | 必填 | 说明 |
-|------|------|------|------|
-| file | File | 是 | 文件内容 |
-| directory | string | 否 | 存储子目录 |
+| 字段      | 类型   | 必填 | 说明       |
+| --------- | ------ | ---- | ---------- |
+| file      | File   | 是   | 文件内容   |
+| directory | string | 否   | 存储子目录 |
 
 **Response** (201):
 
@@ -853,7 +854,7 @@ Token 通过登录接口获取，过期后使用 Refresh Token 刷新。
   "code": 0,
   "message": "file uploaded",
   "data": {
-      "_id": "file_001",
+    "_id": "file_001",
     "originalName": "photo.jpg",
     "url": "https://cdn.example.com/uploads/2024/abc123.jpg",
     "size": 1024000,
@@ -1002,7 +1003,9 @@ export class UserController {
   @ApiQuery({ name: 'page', type: Number, required: false, example: 1 })
   @ApiQuery({ name: 'limit', type: Number, required: false, example: 20 })
   @ApiResponse({ status: 200, description: '返回分页用户列表', type: PaginatedUserResponseDto })
-  async findAll(@Query() query: QueryUserDto): Promise<ApiResponse<PaginatedResult<UserResponseDto>>> {
+  async findAll(
+    @Query() query: QueryUserDto,
+  ): Promise<ApiResponse<PaginatedResult<UserResponseDto>>> {
     // ...
   }
 
@@ -1021,21 +1024,21 @@ export class UserController {
 
 ## 12. 权限对照表
 
-| 权限标识 | 关联接口 | 说明 |
-|----------|---------|------|
-| `user:query` | GET /api/v1/users, GET /api/v1/users/:id | 查询用户 |
-| `user:create` | POST /api/v1/users | 创建用户 |
-| `user:update` | PATCH /api/v1/users/:id | 更新用户 |
-| `user:delete` | DELETE /api/v1/users/:id | 删除用户 |
-| `role:query` | GET /api/v1/roles, GET /api/v1/roles/:id | 查询角色 |
-| `role:create` | POST /api/v1/roles | 创建角色 |
-| `role:update` | PATCH /api/v1/roles/:id | 更新角色 |
-| `role:delete` | DELETE /api/v1/roles/:id | 删除角色 |
-| `permission:query` | GET /api/v1/permissions | 查询权限 |
-| `permission:sync` | POST /api/v1/permissions/sync | 同步权限 |
-| `menu:query` | GET /api/v1/menus/* | 查询菜单 |
-| `menu:create` | POST /api/v1/menus | 创建菜单 |
-| `menu:update` | PATCH /api/v1/menus/:id | 更新菜单 |
-| `menu:delete` | DELETE /api/v1/menus/:id | 删除菜单 |
-| `system:config` | GET/PUT /api/v1/system/configs/* | 系统配置 |
-| `system:log` | GET /api/v1/logs/* | 查看日志 |
+| 权限标识           | 关联接口                                 | 说明     |
+| ------------------ | ---------------------------------------- | -------- |
+| `user:query`       | GET /api/v1/users, GET /api/v1/users/:id | 查询用户 |
+| `user:create`      | POST /api/v1/users                       | 创建用户 |
+| `user:update`      | PATCH /api/v1/users/:id                  | 更新用户 |
+| `user:delete`      | DELETE /api/v1/users/:id                 | 删除用户 |
+| `role:query`       | GET /api/v1/roles, GET /api/v1/roles/:id | 查询角色 |
+| `role:create`      | POST /api/v1/roles                       | 创建角色 |
+| `role:update`      | PATCH /api/v1/roles/:id                  | 更新角色 |
+| `role:delete`      | DELETE /api/v1/roles/:id                 | 删除角色 |
+| `permission:query` | GET /api/v1/permissions                  | 查询权限 |
+| `permission:sync`  | POST /api/v1/permissions/sync            | 同步权限 |
+| `menu:query`       | GET /api/v1/menus/*                      | 查询菜单 |
+| `menu:create`      | POST /api/v1/menus                       | 创建菜单 |
+| `menu:update`      | PATCH /api/v1/menus/:id                  | 更新菜单 |
+| `menu:delete`      | DELETE /api/v1/menus/:id                 | 删除菜单 |
+| `system:config`    | GET/PUT /api/v1/system/configs/*         | 系统配置 |
+| `system:log`       | GET /api/v1/logs/*                       | 查看日志 |

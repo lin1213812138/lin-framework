@@ -42,14 +42,14 @@
 
 ### 1.1 组件说明
 
-| 组件 | 技术栈 | 部署方式 | 水平扩展 |
-|------|--------|----------|----------|
-| 后端 API | NestJS | Docker 容器 / PM2 | ✅ 无状态，多实例 |
-| 前端 SPA | Vue3 + Vite | Nginx / CDN | ✅ 静态文件 |
-| 数据库 | MongoDB | Replica Set / Atlas | ✅ 分片 |
-| 缓存 | Redis | Sentinel / Cluster | ✅ 集群 |
-| 反向代理 | Nginx | Docker 容器 | ✅ 负载均衡 |
-| CI/CD | GitHub Actions | — | — |
+| 组件     | 技术栈         | 部署方式            | 水平扩展          |
+| -------- | -------------- | ------------------- | ----------------- |
+| 后端 API | NestJS         | Docker 容器 / PM2   | ✅ 无状态，多实例 |
+| 前端 SPA | Vue3 + Vite    | Nginx / CDN         | ✅ 静态文件       |
+| 数据库   | MongoDB        | Replica Set / Atlas | ✅ 分片           |
+| 缓存     | Redis          | Sentinel / Cluster  | ✅ 集群           |
+| 反向代理 | Nginx          | Docker 容器         | ✅ 负载均衡       |
+| CI/CD    | GitHub Actions | —                   | —                 |
 
 ### 1.2 网络拓扑
 
@@ -69,12 +69,12 @@
 
 ### 2.1 环境划分
 
-| 环境 | 用途 | 域名 | 数据库 | 日志级别 |
-|------|------|------|--------|----------|
-| `local` | 本地开发 | `localhost` | 本地 | DEBUG |
-| `dev` | 开发联调 | `dev.lin-framework.com` | 共享 Dev | DEBUG |
-| `staging` | 预发布 | `staging.lin-framework.com` | 隔离 Staging | INFO |
-| `production` | 生产 | `lin-framework.com` | 生产集群 | WARN |
+| 环境         | 用途     | 域名                        | 数据库       | 日志级别 |
+| ------------ | -------- | --------------------------- | ------------ | -------- |
+| `local`      | 本地开发 | `localhost`                 | 本地         | DEBUG    |
+| `dev`        | 开发联调 | `dev.lin-framework.com`     | 共享 Dev     | DEBUG    |
+| `staging`    | 预发布   | `staging.lin-framework.com` | 隔离 Staging | INFO     |
+| `production` | 生产     | `lin-framework.com`         | 生产集群     | WARN     |
 
 ### 2.2 环境变量
 
@@ -136,9 +136,7 @@ export const configValidationSchema = Joi.object({
   REDIS_HOST: Joi.string().required(),
   JWT_SECRET: Joi.string().required().min(32),
   STORAGE_DRIVER: Joi.string().valid('local', 's3', 'oss').default('local'),
-  LOG_LEVEL: Joi.string()
-    .valid('debug', 'info', 'warn', 'error')
-    .default('info'),
+  LOG_LEVEL: Joi.string().valid('debug', 'info', 'warn', 'error').default('info'),
 });
 ```
 
@@ -693,11 +691,11 @@ Grafana 面板
 
 ### 7.3 日志级别
 
-| 环境 | 级别 |
-|------|------|
+| 环境        | 级别  |
+| ----------- | ----- |
 | local / dev | DEBUG |
-| staging | INFO |
-| production | WARN |
+| staging     | INFO  |
+| production  | WARN  |
 
 ---
 
@@ -705,11 +703,11 @@ Grafana 面板
 
 ### 8.1 健康检查端点
 
-| 端点 | 说明 |
-|------|------|
-| `GET /health` | 基础存活检查 |
+| 端点                | 说明                        |
+| ------------------- | --------------------------- |
+| `GET /health`       | 基础存活检查                |
 | `GET /health/ready` | 就绪检查（数据库/缓存连接） |
-| `GET /health/live` | 存活检查 |
+| `GET /health/live`  | 存活检查                    |
 
 ```typescript
 @Controller('health')
@@ -730,14 +728,14 @@ export class HealthController {
 
 ### 8.2 核心监控指标
 
-| 指标 | 采集方式 | 告警阈值 |
-|------|----------|----------|
-| API 响应时间 | Prometheus Histogram | P99 > 1s |
-| 请求错误率 | Prometheus Counter | > 5% |
-| MongoDB 连接数 | `db.serverStatus().connections` | > 80% |
-| Redis 内存 | `INFO memory` | > 80% |
-| CPU 使用率 | Docker / OS | > 85% |
-| 内存使用率 | Docker / OS | > 85% |
+| 指标           | 采集方式                        | 告警阈值 |
+| -------------- | ------------------------------- | -------- |
+| API 响应时间   | Prometheus Histogram            | P99 > 1s |
+| 请求错误率     | Prometheus Counter              | > 5%     |
+| MongoDB 连接数 | `db.serverStatus().connections` | > 80%    |
+| Redis 内存     | `INFO memory`                   | > 80%    |
+| CPU 使用率     | Docker / OS                     | > 85%    |
+| 内存使用率     | Docker / OS                     | > 85%    |
 
 ### 8.3 Prometheus 指标暴露
 
@@ -801,7 +799,7 @@ import { ThrottlerModule } from '@nestjs/throttler';
   imports: [
     ThrottlerModule.forRoot({
       throttlers: [
-        { ttl: 60000, limit: 100 },   // 全局：每分钟 100 次
+        { ttl: 60000, limit: 100 }, // 全局：每分钟 100 次
       ],
     }),
   ],

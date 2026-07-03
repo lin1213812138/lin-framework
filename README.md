@@ -20,16 +20,16 @@ LIN Framework 是一套可长期维护、不断扩展的企业级基础开发框
 
 ## 技术栈
 
-| 前端 | 后端 | DevOps |
-|------|------|--------|
-| Vue3 ≥ 3.4 | NestJS ≥ 10 | pnpm ≥ 9.0 |
-| TypeScript ≥ 5.0 | TypeScript ≥ 5.0 | Docker + Compose |
-| Vite ≥ 5.0 | MongoDB ≥ 7.0 + Mongoose ≥ 8.0 | Nginx |
-| Pinia ≥ 2.0 | Redis ≥ 7.0 | Husky + Commitlint |
-| Vue Router ≥ 4.0 | JWT + Passport | |
-| Naive UI ≥ 2.38 | Swagger ≥ 7.0 | |
-| UnoCSS ≥ 0.58 | BullMQ ≥ 4.0（v1.5+） | |
-| Axios ≥ 1.6 | Socket.IO ≥ 4.0（v1.5+） | |
+| 前端             | 后端                           | DevOps             |
+| ---------------- | ------------------------------ | ------------------ |
+| Vue3 ≥ 3.4       | NestJS ≥ 10                    | pnpm ≥ 9.0         |
+| TypeScript ≥ 5.0 | TypeScript ≥ 5.0               | Docker + Compose   |
+| Vite ≥ 5.0       | MongoDB ≥ 7.0 + Mongoose ≥ 8.0 | Nginx              |
+| Pinia ≥ 2.0      | Redis ≥ 7.0                    | Husky + Commitlint |
+| Vue Router ≥ 4.0 | JWT + Passport                 |                    |
+| Naive UI ≥ 2.38  | Swagger ≥ 7.0                  |                    |
+| UnoCSS ≥ 0.58    | BullMQ ≥ 4.0（v1.5+）          |                    |
+| Axios ≥ 1.6      | Socket.IO ≥ 4.0（v1.5+）       |                    |
 
 ## 目录结构
 
@@ -105,11 +105,11 @@ pnpm seed
 
 ### 访问地址
 
-| 服务 | 地址 |
-|------|------|
-| 前端页面 | http://localhost:5173 |
-| API 文档（Swagger） | http://localhost:3000/api/v1/docs |
-| Health Check | http://localhost:3000/api/v1/health |
+| 服务                | 地址                                |
+| ------------------- | ----------------------------------- |
+| 前端页面            | http://localhost:5173               |
+| API 文档（Swagger） | http://localhost:3000/api/v1/docs   |
+| Health Check        | http://localhost:3000/api/v1/health |
 
 ### 可用脚本
 
@@ -126,12 +126,12 @@ pnpm seed         # 初始化种子数据
 
 本项目遵循严格的企业级开发规范，详见：
 
-| 文档 | 说明 |
-|------|------|
-| [AGENTS.md](./AGENTS.md) | AI 编程规范、编码规范、NestJS/Vue3/数据库规范 |
-| [ARCHITECTURE.md](./ARCHITECTURE.md) | 四层架构设计、模块组织、请求流程 |
-| [DATABASE.md](./DATABASE.md) | 数据库 Schema 设计、索引策略 |
-| [ROADMAP.md](./ROADMAP.md) | 版本规划与开发路线图 |
+| 文档                                 | 说明                                          |
+| ------------------------------------ | --------------------------------------------- |
+| [AGENTS.md](./AGENTS.md)             | AI 编程规范、编码规范、NestJS/Vue3/数据库规范 |
+| [ARCHITECTURE.md](./ARCHITECTURE.md) | 四层架构设计、模块组织、请求流程              |
+| [DATABASE.md](./DATABASE.md)         | 数据库 Schema 设计、索引策略                  |
+| [ROADMAP.md](./ROADMAP.md)           | 版本规划与开发路线图                          |
 
 ### 核心规范
 
@@ -145,14 +145,14 @@ pnpm seed         # 初始化种子数据
 
 ## Roadmap
 
-| 版本 | 阶段 | 时间 | 核心交付 |
-|------|------|------|----------|
-| v0.1 | 架构验证 | 2 周 | Monorepo 脚手架 + Docker + CI/CD |
-| v0.5 | 核心可用 | 8 周 | Auth + RBAC + 前后端 CRUD 页面 |
-| v1.0 | 企业级可用 | 20 周 | 日志 + 文件 + 通知 + 系统监控 |
-| v1.5 | 插件化 | 36 周 | 插件系统 + CRUD Generator + BullMQ + WebSocket |
-| v2.0 | 平台化 | 56 周 | 多租户 + 工作流引擎 + 开放平台 |
-| v3.0 | 生态 | 80 周 | AI 模块 + 支付 + 内网穿透 + SDK + MCP |
+| 版本 | 阶段       | 时间  | 核心交付                                       |
+| ---- | ---------- | ----- | ---------------------------------------------- |
+| v0.1 | 架构验证   | 2 周  | Monorepo 脚手架 + Docker + CI/CD               |
+| v0.5 | 核心可用   | 8 周  | Auth + RBAC + 前后端 CRUD 页面                 |
+| v1.0 | 企业级可用 | 20 周 | 日志 + 文件 + 通知 + 系统监控                  |
+| v1.5 | 插件化     | 36 周 | 插件系统 + CRUD Generator + BullMQ + WebSocket |
+| v2.0 | 平台化     | 56 周 | 多租户 + 工作流引擎 + 开放平台                 |
+| v3.0 | 生态       | 80 周 | AI 模块 + 支付 + 内网穿透 + SDK + MCP          |
 
 详细版本规划请参阅 [ROADMAP.md](./ROADMAP.md)。
 

@@ -1,0 +1,65 @@
+services:
+  mongodb:
+    ports:
+      - "27017:27017"
+    volumes:
+      - ../docker/mongodb/init.js:/docker-entrypoint-initdb.d/init.js:ro
+
+  redis:
+    ports:
+      - "6379:6379"
+
+  # Development services - hot reload via mounted volumes
+  server:
+    build:
+      context: ../
+      dockerfile: apps/server/Dockerfile
+      target: development
+    container_name: lin-server
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    volumes:
+      - ../apps/server/src:/app/apps/server/src
+      - ../packages:/app/packages
+    environment:
+      - NODE_ENV=development
+      - PORT=3000
+      - MONGODB_URI=mongodb://mongodb:27017/lin_framework
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - REDIS_PASSWORD=
+      - JWT_SECRET=dev-secret-key-min-32-chars-long-for-development
+      - LOG_LEVEL=debug
+    depends_on:
+      - mongodb
+      - redis
+
+  web:
+    build:
+      context: ../
+      dockerfile: apps/admin-web/Dockerfile
+      target: development
+    container_name: lin-web
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    volumes:
+      - ../apps/admin-web/src:/app/apps/admin-web/src
+      - ../packages:/app/packages
+    environment:
+      - NODE_ENV=development
+    depends_on:
+      - server
+
+  nginx:
+    image: nginx:alpine
+    container_name: lin-nginx
+    restart: unless-stopped
+    ports:
+      - "8080:80"
+    volumes:
+      - ../docker/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - server
+      - web

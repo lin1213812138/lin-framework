@@ -1,0 +1,1 @@
+export { setupPermissionDirective } from './permission';
