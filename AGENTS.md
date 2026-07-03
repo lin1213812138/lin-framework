@@ -1012,6 +1012,12 @@ main          # 生产分支，只接受 PR
 - 合并前确保 CI 通过
 - 合并方式：Squash Merge（功能分支）或 Merge Commit（发布分支）
 
+### 15.4 Git 仓库规范
+
+- **单 Git 仓库**：仅项目根目录存在 `.git` 目录，所有子包（`apps/*`、`packages/*`）不得包含嵌套的 `.git` 目录
+- **默认分支**：`main`
+- monorepo 内所有代码统一在根仓库管理版本，子包不独立维护 Git 历史
+
 ---
 
 ## 16. AI Coding 规范
