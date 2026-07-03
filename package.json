@@ -1,0 +1,14 @@
+{
+  "name": "lin-framework",
+  "private": true,
+  "scripts": {
+    "dev": "",
+    "build": "",
+    "lint": "",
+    "format": ""
+  },
+  "keywords": [],
+  "author": "lin-framework",
+  "license": "ISC",
+  "packageManager": "pnpm@10.34.3"
+}
