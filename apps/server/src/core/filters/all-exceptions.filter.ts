@@ -19,22 +19,29 @@ export class AllExceptionsFilter implements ExceptionFilter {
       status = exception.getStatus();
       const res = exception.getResponse();
       if (typeof res === 'object' && res !== null) {
-        body = res as Record<string, unknown>;
+        body = { ...(res as Record<string, unknown>) };
+        if (Array.isArray(body.message)) {
+          body.message = (body.message as string[])[0] ?? '请求参数错误';
+        }
       } else {
         body = { code: status, message: res };
       }
+
+      const message = typeof body.message === 'string' ? body.message : '';
+      const logMessage = `${request.method} ${request.url} ${status} - ${message}`;
+      this.logger.error(logMessage, exception.stack ?? '');
     } else {
       status = HttpStatus.INTERNAL_SERVER_ERROR;
-      body = { code: 10000, message: 'Internal server error' };
+      body = { code: 10000, message: '服务器内部错误' };
       this.logger.error(
-        'Unhandled exception',
+        '未捕获的异常',
         exception instanceof Error ? exception.stack : '',
       );
     }
 
     response.status(status).json({
       code: body.code ?? status,
-      message: body.message ?? 'unknown error',
+      message: body.message ?? '未知错误',
       data: null,
       timestamp: Date.now(),
       requestId,

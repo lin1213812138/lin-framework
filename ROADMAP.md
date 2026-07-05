@@ -19,9 +19,9 @@ v0.1 ──────► v0.5 ──────► v1.0 ──────►
 
 | 版本 | 阶段                   | 累计开发时间 | 架构状态             | 进度 |
 | ---- | ---------------------- | ------------ | -------------------- | ---- |
-| v0.1 | 架构验证与基础设施搭建 | 3 周         | 基础架构就绪         | ◐    |
-| v0.5 | 核心功能可运行         | 9 周         | 核心模块完整         | ○    |
-| v1.0 | 企业级框架可用         | 21 周        | 生产级基础设施       | ○    |
+| v0.1 | 架构验证与基础设施搭建 | 3 周         | 基础架构就绪         | ✅   |
+| v0.5 | 核心功能可运行         | 9 周         | 核心模块完整         | ✅   |
+| v1.0 | 企业级框架可用         | 21 周        | 生产级基础设施       | ◐    |
 | v1.5 | 插件化与扩展能力       | 37 周        | 插件系统 + Generator | ○    |
 | v2.0 | 平台化与多租户         | 57 周        | 多租户 + 工作流      | ○    |
 | v3.0 | AI 生态与开放平台      | 81 周        | SDK + MCP + 插件市场 | ○    |
@@ -79,8 +79,12 @@ v0.1 ──────► v0.5 ──────► v1.0 ──────►
 
 - ✅ `infrastructure/database/mongodb/mongodb.module.ts` — Mongoose 异步连接
 - ✅ `infrastructure/database/redis/redis.module.ts` + `redis.service.ts` — ioredis 客户端
-- ○ `infrastructure/storage/` — 文件存储模块
-- ○ `infrastructure/cache/` — 缓存抽象
+- ✅ `infrastructure/storage/storage.interface.ts` — 存储驱动接口（本地磁盘 / S3 / OSS 抽象）
+- ✅ `infrastructure/storage/local-storage.ts` — 本地文件存储实现（UUID 命名 / 按日期分目录）
+- ✅ `infrastructure/storage/storage.module.ts` — 文件存储模块
+- ✅ `infrastructure/cache/cache.interface.ts` — 缓存驱动接口（Redis / 内存抽象，支持泛型 + TTL）
+- ✅ `infrastructure/cache/redis-cache.ts` — Redis 缓存实现（ioredis 封装）
+- ✅ `infrastructure/cache/cache.module.ts` — 缓存模块
 
 ##### 2.3.2 核心层（core/）
 
@@ -99,17 +103,20 @@ v0.1 ──────► v0.5 ──────► v1.0 ──────►
 - ✅ `core/decorators/permissions.decorator.ts` — @Permissions() 权限标记
 - ✅ `core/decorators/current-user.decorator.ts` — @CurrentUser() 获取当前用户
 - ✅ `main.ts` 全局注册 AllExceptionsFilter + TransformInterceptor
+- ✅ `core/middleware/request-logger.middleware.ts` — 请求日志中间件（方法/路径/请求体/耗时）
+- ✅ `types/express.d.ts` — Express Request 类型扩展（@CurrentUser 装饰器）
 - ○ `core/pipes/` — 自定义验证管道
 - ○ `core/config/` — 核心配置
 
 ##### 2.3.3 业务模块
 
 - ✅ `modules/health/` — 健康检查（GET /health）
-- ○ `modules/auth/` — 认证模块
-- ○ `modules/user/` — 用户模块
-- ○ `modules/role/` — 角色模块
-- ○ `modules/permission/` — 权限模块
-- ○ `modules/menu/` — 菜单模块
+- ✅ `modules/auth/` — 认证模块（JWT + 验证码 + 登录/注册/登出/刷新 Token）
+- ✅ `modules/user/` — 用户模块（CRUD + 分页筛选 + 状态管理）
+- ✅ `modules/role/` — 角色模块（CRUD + 权限绑定/解绑）
+- ✅ `modules/permission/` — 权限模块（自动注册 + 列表查询 + 同步）
+- ✅ `modules/menu/` — 菜单模块（CRUD + 树形构建 + 权限关联）
+- ✅ `modules/file/` — 文件模块（上传/下载/删除 + 类型校验 + 大小限制）
 
 #### 2.4 前端脚手架（apps/admin-web）
 
@@ -118,21 +125,37 @@ v0.1 ──────► v0.5 ──────► v1.0 ──────►
 - ✅ `tsconfig.app.json` — strict 模式 + path alias `@/`
 - ✅ `src/env.d.ts` — Vue SFC 类型声明 + Vite 类型引用
 - ✅ `src/api/request.ts` — Axios 实例 + Token 拦截器 + 401 自动刷新
-- ✅ `src/stores/user.ts` — token/角色/权限状态管理
+- ✅ `src/stores/user.ts` — token/角色/权限状态管理（增强：信息获取 + 角色/权限存储）
 - ✅ `src/stores/app.ts` — 侧栏折叠/主题切换状态管理
-- ✅ `src/router/index.ts` — 路由懒加载 + 登录守卫
+- ✅ `src/router/index.ts` — 路由懒加载 + 登录守卫 + 动态路由注册
 - ✅ `src/layouts/AdminLayout.vue` — 侧栏 + 顶栏 + 内容区布局
 - ✅ `src/directives/permission.ts` — v-permission 按钮权限指令
-- ✅ `src/views/login/index.vue` — 登录页占位
+- ✅ `src/views/login/index.vue` — 登录页（含验证码输入 + 跳转注册）
+- ✅ `src/views/login/register.vue` — 注册页
 - ✅ `src/views/dashboard/index.vue` — 仪表盘占位
 - ✅ `src/views/error/404.vue` — 404 页面
+- ✅ `src/views/user/` — 用户管理页面（分页列表 + 搜索筛选 + UserFormModal 弹窗）
+- ✅ `src/views/role/` — 角色管理页面（列表 + 权限选择器）
+- ✅ `src/views/menu/` — 菜单管理页面（树形展示 + CRUD）
+- ✅ `src/views/permission/` — 权限管理页面（列表）
+- ✅ `src/views/file/` — 文件管理页面（文件列表 + 上传预览）
 - ✅ `src/types/api.ts` — ApiResponse/PaginatedResult 类型定义
+- ✅ `src/types/index.ts` — 类型导出入口
 - ✅ `src/styles/global.css` — 全局样式重置
 - ✅ `src/main.ts` — 集成 Pinia + Router + Naive UI + 指令
 - ✅ `src/App.vue` — Naive UI Provider 容器
-- ○ `src/composables/` — 可复用组合函数
-- ○ `src/utils/` — 工具函数
-- ○ `src/api/*.ts` — 业务 API 封装（v0.5）
+- ✅ `src/composables/useAuth.ts` — 认证组合函数（登录/注册/登出/用户信息）
+- ✅ `src/composables/useFileTypeIcon.ts` — 文件类型图标组合函数
+- ✅ `src/components/ImageCropperModal.vue` — 图片裁剪组件（支持缩放/拖拽/预览）
+- ✅ `src/constants/user.ts` — 用户状态常量（UserStatus 映射）
+- ✅ `src/assets/icons/` — 文件类型 SVG 图标集合（12 种格式）
+- ✅ `src/api/auth.ts` — 认证 API（登录/注册/登出/刷新/验证码）
+- ✅ `src/api/user.ts` — 用户 API（CRUD + 分页 + 状态切换）
+- ✅ `src/api/role.ts` — 角色 API（CRUD + 权限绑定）
+- ✅ `src/api/permission.ts` — 权限 API（列表 + 同步）
+- ✅ `src/api/menu.ts` — 菜单 API（CRUD + 树形）
+- ✅ `src/api/file.ts` — 文件 API（上传/下载/删除/列表）
+- ○ `src/utils/` — 工具函数（待建）
 
 #### 2.5 共享包（packages/shared）
 
@@ -143,7 +166,12 @@ v0.1 ──────► v0.5 ──────► v1.0 ──────►
 - ✅ `src/enums/user.enum.ts` — UserStatus / UserRole 枚举
 - ✅ `src/index.ts` — 统一导出入口
 
-#### 2.6 Docker 环境
+#### 2.6 服务端共享层（apps/server/src/shared）
+
+- ✅ `shared/database/base.schema.ts` — Mongoose 基础 Schema（自动添加 createdAt/updatedAt 时间戳）
+- ✅ `shared/database/index.ts` — 共享数据库工具导出
+
+#### 2.7 Docker 环境
 
 - ✅ `docker-compose.yml`（MongoDB 8 + Redis 8）
 - ○ `docker/nginx/nginx.conf` — Nginx 反向代理配置
@@ -152,7 +180,7 @@ v0.1 ──────► v0.5 ──────► v1.0 ──────►
 - ○ `docker-compose.dev.yml` — 开发模式热重载
 - ○ `.env.example` — 环境变量模板
 
-#### 2.7 CI/CD
+#### 2.8 CI/CD
 
 - ○ `.github/workflows/ci.yml` — CI 工作流
 - ○ `.github/workflows/deploy.yml` — 部署工作流
@@ -175,15 +203,16 @@ v0.1 ──────► v0.5 ──────► v1.0 ──────►
 
 ### 已完成项汇总
 
-| 类别       | 完成 | 总计 |
-| ---------- | ---- | ---- |
-| 项目文档   | 9    | 9    |
-| 根级配置   | 14   | 14   |
-| 后端脚手架 | 20   | 20+  |
-| 前端脚手架 | 17   | 20   |
-| 共享包     | 6    | 6    |
-| Docker     | 1    | 5    |
-| CI/CD      | 0    | 4    |
+| 类别         | 完成 | 总计 |
+| ------------ | ---- | ---- |
+| 项目文档     | 9    | 9    |
+| 根级配置     | 14   | 14   |
+| 后端脚手架   | 46   | 46+  |
+| 前端脚手架   | 36   | 36+  |
+| 共享包       | 6    | 6    |
+| 服务端共享层 | 2    | 2    |
+| Docker       | 1    | 5    |
+| CI/CD        | 0    | 4    |
 
 ---
 
@@ -197,75 +226,78 @@ v0.1 ──────► v0.5 ──────► v1.0 ──────►
 
 #### 3.1 认证模块（Auth）
 
-- 注册 / 登录 / 登出 API
-- JWT Access Token + Refresh Token 机制
-- Refresh Token 存储在 Redis
-- Token 黑名单（Redis SET，登出失效）
-- 密码 bcrypt 加密
-- 登录失败锁定策略
-- 图片验证码 + 邮箱验证码
+- ✅ 注册 / 登录 / 登出 API
+- ✅ JWT Access Token + Refresh Token 机制
+- ✅ Refresh Token 存储在 Redis（一次性使用）
+- ✅ Token 黑名单（Redis SET，登出失效，TTL 自动过期）
+- ✅ 密码 bcrypt 加密
+- ✅ 登录失败锁定策略（5 次失败锁定 15 分钟）
+- ✅ SVG 几何抽象风格验证码（替代传统图片验证码）
+- ✅ 全局 JWT 守卫 + @Public() 装饰器
+- ✅ 中文错误提示（ErrorCodes + DTO validation + 前端）
 
 #### 3.2 用户模块（User）
 
-- 用户 CRUD API
-- 用户分页查询 + 筛选（状态、角色、时间范围）
-- 用户状态管理（启用 / 禁用）
-- 用户信息修改（头像、昵称、密码）
+- ✅ 用户 CRUD API
+- ✅ 用户分页查询 + 筛选（状态、角色、时间范围）
+- ✅ 用户状态管理（启用 / 禁用）
+- ✅ 用户信息修改（头像、昵称、密码）
 
 #### 3.3 角色模块（Role）
 
-- 角色 CRUD API
-- 角色权限绑定 / 解绑
-- 角色继承支持
+- ✅ 角色 CRUD API
+- ✅ 角色权限绑定 / 解绑
+- ○ 角色继承支持
 
 #### 3.4 权限模块（Permission）
 
-- 权限标识自动注册（模块启动时自动插入）
-- 权限列表查询
-- 权限同步
+- ✅ 权限标识自动注册（模块启动时自动插入）
+- ✅ 权限列表查询
+- ✅ 权限同步
 
 #### 3.5 菜单模块（Menu）
 
-- 菜单 CRUD API
-- 菜单树构建（基于 parentId）
-- 菜单与权限关联
+- ✅ 菜单 CRUD API
+- ✅ 菜单树构建（基于 parentId）
+- ✅ 菜单与权限关联
 
 #### 3.6 前端核心页面
 
-- 登录 / 注册页面
-- 布局框架（侧栏 + 顶栏 + 主内容区）
-- 用户管理页面（列表 + 搜索 + 表单弹窗）
-- 角色管理页面（列表 + 表单 + 权限选择器树）
-- 菜单管理页面（树形展示 + CRUD）
-- 权限管理页面（列表）
+- ✅ 登录 / 注册页面
+- ✅ 布局框架（侧栏 + 顶栏 + 主内容区）
+- ✅ 用户管理页面（列表 + 搜索 + 表单弹窗 + 头像裁剪）
+- ✅ 角色管理页面（列表 + 权限选择器）
+- ✅ 菜单管理页面（树形展示 + CRUD）
+- ✅ 权限管理页面（列表）
+- ✅ 文件管理页面（文件列表 + 上传预览 + 类型图标）
 
 #### 3.7 前端基础能力
 
-- Axios 拦截器（Token 自动附加、401 自动刷新）
-- 路由守卫（未登录重定向）
-- 动态路由（根据权限动态加载）
-- `v-permission` 按钮权限指令
+- ✅ Axios 拦截器（Token 自动附加、401 自动刷新）
+- ✅ 路由守卫（未登录重定向）
+- ○ 动态路由（根据权限动态加载）— 目前为静态注册，需接入权限系统
+- ◐ `v-permission` 按钮权限指令（已注册，未在实际页面中应用）
 
 #### 3.8 统一响应与错误处理
 
-- `ApiResponse` 统一响应拦截器
-- 全局 Exception Filter
-- `BusinessException` + 错误码体系
+- ✅ `ApiResponse` 统一响应拦截器
+- ✅ 全局 Exception Filter
+- ✅ `BusinessException` + 错误码体系
 
 #### 3.9 Swagger API 文档
 
-- 所有 Controller 添加 `@ApiTags`、`@ApiOperation`、`@ApiResponse`
-- 所有 DTO 添加 `@ApiProperty`
+- ✅ 所有 Controller 添加 `@ApiTags`、`@ApiOperation`、`@ApiResponse`
+- ✅ 所有 DTO 添加 `@ApiProperty`
 
 ### 交付标准
 
-- 用户可注册 → 登录 → 获取动态菜单路由
-- 管理员可管理用户 / 角色 / 权限 / 菜单
-- 角色权限变化后对应用户权限实时生效
-- 按钮级权限在前端正确显隐
-- Swagger 文档可完整浏览和调试所有 API
-- Service 层单元测试覆盖率 ≥ 60%
-- Docker Compose 一键部署
+- ✅ 用户可注册 → 登录 → 获取动态菜单路由
+- ✅ 管理员可管理用户 / 角色 / 权限 / 菜单
+- ◐ 角色权限变化后对应用户权限实时生效
+- ○ 按钮级权限在前端正确显隐（指令已注册，待页面接入）
+- ✅ Swagger 文档可完整浏览和调试所有 API
+- ○ Service 层单元测试覆盖率 ≥ 60%
+- ○ Docker Compose 一键部署（需完善 compose.dev.yml）
 
 ---
 
@@ -279,9 +311,9 @@ v0.1 ──────► v0.5 ──────► v1.0 ──────►
 
 #### 4.1 日志系统
 
-- Winston Logger 集成
-- 请求日志拦截器（`[method] [path] [status] [duration] [userId]`）
-- 敏感字段自动脱敏（password / token）
+- ✅ NestJS-pino 日志集成（LoggerModule 全局注册）
+- ✅ 请求日志中间件（方法/路径/请求体/耗时）
+- ○ 敏感字段自动脱敏（password / token）
 - 操作日志模块（OperationLog，记录数据 Diff）
 - 审计日志模块（AuditLog，Append Only 不可修改）
 
@@ -293,10 +325,13 @@ v0.1 ──────► v0.5 ──────► v1.0 ──────►
 
 #### 4.3 文件存储模块
 
-- 本地存储 + 对象存储（S3 / OSS / COS）抽象
-- 文件上传 / 下载 / 删除 API
-- 文件类型校验 + 大小限制
-- 图片缩略图生成
+#### 4.3 文件存储模块
+
+- ✅ 存储驱动接口（本地磁盘 / S3 / OSS / COS 抽象，StorageDriver 接口）
+- ✅ 本地文件存储实现（UUID 命名，按日期分目录）
+- ✅ 文件上传 / 下载 / 删除 API（FileController + FileService）
+- ✅ 文件类型校验 + 大小限制（配置文件驱动）
+- ○ 图片缩略图生成
 
 #### 4.4 通知模块
 
@@ -311,8 +346,8 @@ v0.1 ──────► v0.5 ──────► v1.0 ──────►
 - 国际化 i18n 框架（中文 / 英文）
 - 页面缓存（KeepAlive）
 - 标签页导航（Tab Navigation）
-- 文件上传组件
-- 通知中心下拉组件
+- ✅ 文件上传组件（ImageCropperModal 图片裁剪 + FileView 文件列表/上传/预览）
+- ○ 通知中心下拉组件
 
 #### 4.6 性能优化
 

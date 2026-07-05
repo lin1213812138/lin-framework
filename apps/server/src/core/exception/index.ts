@@ -5,4 +5,4 @@ export {
   NotFoundException,
   ValidationException,
   ConflictException,
-} from './business.exception';
+} from '@/core/exception/business.exception';

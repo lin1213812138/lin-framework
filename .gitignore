@@ -44,6 +44,7 @@ Thumbs.db
 
 # ── NestJS ──
 packages/server/uploads/
+apps/server/uploads/
 packages/server/temp/
 
 # ── Vite ──

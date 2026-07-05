@@ -1,4 +1,4 @@
-export { Public } from './public.decorator';
-export { Roles } from './roles.decorator';
-export { Permissions } from './permissions.decorator';
-export { CurrentUser } from './current-user.decorator';
+export { Public } from '@/core/decorators/public.decorator';
+export { Roles } from '@/core/decorators/roles.decorator';
+export { Permissions } from '@/core/decorators/permissions.decorator';
+export { CurrentUser } from '@/core/decorators/current-user.decorator';

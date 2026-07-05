@@ -11,4 +11,9 @@ export default () => ({
     password: process.env.REDIS_PASSWORD,
     db: Number(process.env.REDIS_DB) || 0,
   },
+
+  storage: {
+    driver: process.env.STORAGE_DRIVER || 'local',
+    path: process.env.STORAGE_PATH || './uploads',
+  },
 });

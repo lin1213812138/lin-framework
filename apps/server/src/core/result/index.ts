@@ -1,1 +1,1 @@
-export { success, paginated, fail } from './result.util';
+export { success, paginated, fail } from '@/core/result/result.util';

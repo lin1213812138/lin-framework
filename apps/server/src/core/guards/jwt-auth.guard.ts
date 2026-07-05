@@ -1,13 +1,15 @@
-import type { CanActivate, ExecutionContext } from '@nestjs/common';
+import type { ExecutionContext } from '@nestjs/common';
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
-import type { Request } from 'express';
+import { AuthGuard } from '@nestjs/passport';
 
 @Injectable()
-export class JwtAuthGuard implements CanActivate {
-  constructor(private readonly reflector: Reflector) {}
+export class JwtAuthGuard extends AuthGuard('jwt') {
+  constructor(private readonly reflector: Reflector) {
+    super();
+  }
 
-  canActivate(context: ExecutionContext): boolean {
+  canActivate(context: ExecutionContext) {
     const isPublic = this.reflector.get<boolean>(
       'isPublic',
       context.getHandler(),
@@ -16,26 +18,13 @@ export class JwtAuthGuard implements CanActivate {
       return true;
     }
 
-    const request = context.switchToHttp().getRequest<Request>();
-    const token = request.headers.authorization?.replace('Bearer ', '');
-
-    if (!token) {
-      throw new UnauthorizedException('unauthorized');
-    }
-
-    try {
-      const payload = verifyToken(token);
-      request.user = payload;
-      return true;
-    } catch {
-      throw new UnauthorizedException('token invalid');
-    }
+    return super.canActivate(context);
   }
-}
 
-function verifyToken(token: string): Record<string, unknown> {
-  const payload = JSON.parse(
-    Buffer.from(token.split('.')[1] || '', 'base64').toString(),
-  ) as Record<string, unknown>;
-  return payload;
+  handleRequest<TUser = any>(err: Error | null, user: TUser): TUser {
+    if (err || !user) {
+      throw err || new UnauthorizedException('unauthorized');
+    }
+    return user;
+  }
 }

@@ -1,3 +1,5 @@
+import type { UserStatus } from '@/constants/user';
+
 export interface ApiResponse<T = unknown> {
   code: number;
   message: string;
@@ -32,17 +34,12 @@ export interface UserInfo {
   email: string;
   avatar: string;
   status: UserStatus;
+  role: string;
   roles: string[];
   permissions: string[];
+  createDate: number;
+  updateDate: number;
 }
-
-export const UserStatus = {
-  ACTIVE: 'active',
-  INACTIVE: 'inactive',
-  DISABLED: 'disabled',
-} as const;
-
-export type UserStatus = (typeof UserStatus)[keyof typeof UserStatus];
 
 export interface MenuItem {
   _id: string;

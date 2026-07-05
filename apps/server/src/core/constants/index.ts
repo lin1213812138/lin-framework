@@ -1,2 +1,2 @@
-export { ErrorCodes } from './error-codes.constant';
-export type { ErrorCode } from './error-codes.constant';
+export { ErrorCodes } from '@/core/constants/error-codes.constant';
+export type { ErrorCode } from '@/core/constants/error-codes.constant';

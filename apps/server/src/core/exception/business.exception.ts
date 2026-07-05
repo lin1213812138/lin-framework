@@ -1,5 +1,5 @@
 import { HttpException } from '@nestjs/common';
-import type { ErrorCode } from '../constants';
+import type { ErrorCode } from '@/core/constants';
 
 export class BusinessException extends HttpException {
   constructor(error: ErrorCode) {
@@ -39,7 +39,7 @@ export class NotFoundException extends HttpException {
 
 export class ValidationException extends HttpException {
   constructor(errors: string[]) {
-    super({ code: 10001, message: 'validation failed', errors }, 400);
+    super({ code: 10001, message: '参数校验失败', errors }, 400);
   }
 }
 

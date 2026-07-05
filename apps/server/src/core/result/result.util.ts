@@ -1,5 +1,5 @@
-import type { ErrorCode } from '../constants';
-import type { ApiResponse } from '../interfaces';
+import type { ErrorCode } from '@/core/constants';
+import type { ApiResponse } from '@/core/interfaces';
 
 export function success<T>(data: T, message = 'success'): ApiResponse<T> {
   return {

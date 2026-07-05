@@ -42,6 +42,12 @@ request.interceptors.response.use(
         window.location.href = '/login';
       }
     }
+
+    const data = error.response?.data;
+    if (data?.message) {
+      error.message = Array.isArray(data.message) ? data.message[0] : data.message;
+    }
+
     return Promise.reject(error);
   },
 );

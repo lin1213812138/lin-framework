@@ -1110,7 +1110,27 @@ async findById(userId: string, includePermissions = false): Promise<UserResponse
 - **禁止非类型化的 `Object.keys()` 遍历**
 - **禁止 `.d.ts` 中使用 `any`**
 
-### 16.8 代码自检清单
+### 16.8 导入路径规范
+
+所有文件必须使用 `@/` 路径别名，禁止使用相对路径（`./`、`../`）。
+
+```typescript
+// ✅ 正确
+import { User } from '@/modules/auth/schemas/user.schema';
+import { PermissionService } from '@/modules/permission/services/permission.service';
+import { RedisService } from '@/infrastructure/database/redis/redis.service';
+import { ErrorCodes } from '@/core/constants';
+
+// ❌ 错误
+import { User } from '../../auth/schemas/user.schema';
+import { PermissionService } from '@/modules/permission';
+import { RedisService } from './redis.service'; // 同一目录下也不行
+import { ErrorCodes } from '../constants';
+```
+
+**Barrel 文件**（`index.ts`）用于将模块能力暴露给其他模块消费，模块内部文件不应通过 barrel 导入。
+
+### 16.9 代码自检清单
 
 生成代码后，AI 必须自我检查：
 

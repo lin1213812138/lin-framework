@@ -1,7 +1,9 @@
-<script setup lang="ts"></script>
+<script setup lang="ts">
+import { zhCN } from 'naive-ui';
+</script>
 
 <template>
-  <n-config-provider>
+  <n-config-provider :locale="zhCN">
     <n-loading-bar-provider>
       <n-message-provider>
         <n-dialog-provider>

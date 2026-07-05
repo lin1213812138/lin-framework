@@ -23,7 +23,7 @@ export class TransformInterceptor<T> implements NestInterceptor<
     return next.handle().pipe(
       map((data) => ({
         code: 0,
-        message: 'success',
+        message: '操作成功',
         data: data ?? null,
         timestamp: Date.now(),
         requestId,

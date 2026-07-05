@@ -2,4 +2,4 @@ export type {
   ApiResponse,
   ApiError,
   PaginatedResult,
-} from './api-response.interface';
+} from '@/core/interfaces/api-response.interface';

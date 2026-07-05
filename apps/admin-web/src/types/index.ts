@@ -4,6 +4,7 @@ export type {
   LoginDto,
   LoginResult,
   UserInfo,
-  UserStatus,
   MenuItem,
 } from './api';
+
+export type { UserStatus } from '@/constants/user';
