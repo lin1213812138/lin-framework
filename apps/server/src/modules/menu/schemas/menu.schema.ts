@@ -20,9 +20,25 @@ export class Menu extends BaseEntity {
   @Prop({ trim: true })
   path?: string;
 
+  /** 路由名称 */
+  @Prop({ trim: true })
+  routeName?: string;
+
+  /** 菜单组件 */
+  @Prop({ trim: true })
+  component?: string;
+
+  /** 重定向 */
+  @Prop({ trim: true })
+  redirect?: string;
+
   /** 图标名称 */
   @Prop({ trim: true })
   icon?: string;
+
+  /** 外链/内嵌时的链接地址 */
+  @Prop({ trim: true })
+  linkUrl?: string;
 
   /** 上级菜单 ID，null 表示根节点 */
   @Prop({ type: String, default: null, index: true })
@@ -42,7 +58,27 @@ export class Menu extends BaseEntity {
 
   /** 是否外链 */
   @Prop({ default: false })
-  isExternal: boolean;
+  isLink: boolean;
+
+  /** 是否隐藏 */
+  @Prop({ default: false })
+  isHidden: boolean;
+
+  /** 是否固定 */
+  @Prop({ default: false })
+  isAffix: boolean;
+
+  /** 是否总是显示 */
+  @Prop({ default: false })
+  isAlwaysShow: boolean;
+
+  /** 页面缓存 */
+  @Prop({ default: true })
+  keepAlive: boolean;
+
+  /** 是否内嵌 */
+  @Prop({ default: false })
+  isIframe: boolean;
 
   /** 状态：1-启用 / 0-禁用 */
   @Prop({ default: 1, type: Number })

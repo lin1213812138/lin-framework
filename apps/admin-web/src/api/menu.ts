@@ -4,14 +4,23 @@ import type { ApiResponse } from '@/types/api';
 export interface MenuInfo {
   _id: string;
   name: string;
+  routeName?: string;
   path?: string;
+  component?: string;
+  redirect?: string;
   icon?: string;
+  linkUrl?: string;
   parentId: string | null;
   permission?: string;
   sort: number;
   type: string;
   status: number;
-  isExternal: boolean;
+  isLink: boolean;
+  isHidden: boolean;
+  isAffix: boolean;
+  isAlwaysShow: boolean;
+  keepAlive: boolean;
+  isIframe: boolean;
   createDate: number;
 }
 
@@ -37,13 +46,22 @@ export function getMenu(id: string) {
 /** 创建菜单 */
 export function createMenu(data: {
   name: string;
+  routeName?: string;
   path?: string;
+  component?: string;
+  redirect?: string;
   icon?: string;
+  linkUrl?: string;
   parentId?: string | null;
   permission?: string;
   sort?: number;
   type: string;
-  isExternal?: boolean;
+  isLink?: boolean;
+  isHidden?: boolean;
+  isAffix?: boolean;
+  isAlwaysShow?: boolean;
+  keepAlive?: boolean;
+  isIframe?: boolean;
 }) {
   return request.post<ApiResponse<MenuInfo>>('/menus', data);
 }
@@ -53,14 +71,23 @@ export function updateMenu(
   id: string,
   data: {
     name?: string;
+    routeName?: string;
     path?: string;
+    component?: string;
+    redirect?: string;
     icon?: string;
+    linkUrl?: string;
     parentId?: string | null;
     permission?: string;
     sort?: number;
     type?: string;
     status?: number;
-    isExternal?: boolean;
+    isLink?: boolean;
+    isHidden?: boolean;
+    isAffix?: boolean;
+    isAlwaysShow?: boolean;
+    keepAlive?: boolean;
+    isIframe?: boolean;
   },
 ) {
   return request.patch<ApiResponse<MenuInfo>>(`/menus/${id}`, data);

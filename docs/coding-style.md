@@ -536,6 +536,122 @@ request.interceptors.response.use(
 );
 ```
 
+### 5.4 视图页面组件拆分
+
+`index.vue` **只包含列表/表格逻辑**，其余所有非列表功能（创建、编辑、详情、导入等）必须抽离为独立组件，放在同级的 `components/` 目录下。
+
+**目录结构**
+
+```
+views/{module}/
+├── index.vue                  # 列表页（表格 + 查询 + 删除）
+├── components/
+│   ├── {Module}FormModal.vue  # 创建/编辑弹窗
+│   ├── {Module}Detail.vue     # 详情页（可选）
+│   └── {Module}ImportModal.vue # 导入弹窗（可选）
+```
+
+**index.vue 的职责（仅限）**
+
+- 列表查询与分页
+- 表格渲染
+- 搜索/筛选表单
+- 删除确认弹窗
+- 管理子组件的 `visible` / `mode` / `selectedData` 状态
+- 打开/关闭子组件的函数
+
+**子组件的职责**
+
+- 接收 `visible` / `mode` / `data` 等 props
+- 内部维护自身的表单状态与校验规则
+- 触发 `close` / `saved` 事件通知父组件
+
+**组件命名规范**
+
+| 文件     | 命名规则                  | 示例                   |
+| -------- | ------------------------- | ---------------------- |
+| 列表页   | `index.vue`               | `views/user/index.vue` |
+| 表单弹窗 | `{Module}FormModal.vue`   | `UserFormModal.vue`    |
+| 详情页   | `{Module}Detail.vue`      | `RoleDetail.vue`       |
+| 导入弹窗 | `{Module}ImportModal.vue` | `FileImportModal.vue`  |
+
+**示例：User 模块**
+
+```vue
+<!-- views/user/index.vue -->
+<script setup lang="ts">
+// 只引入子组件
+import UserFormModal from './components/UserFormModal.vue';
+
+// 列表状态
+const data = ref([]);
+const loading = ref(false);
+const showFormModal = ref(false);
+const formMode = ref<'create' | 'edit'>('create');
+const selectedUser = ref(null);
+
+function openCreate() {
+  formMode.value = 'create';
+  selectedUser.value = null;
+  showFormModal.value = true;
+}
+
+function openEdit(row: UserInfo) {
+  formMode.value = 'edit';
+  selectedUser.value = row;
+  showFormModal.value = true;
+}
+
+function onSaved() {
+  showFormModal.value = false;
+  loadData();
+}
+</script>
+
+<template>
+  <!-- 列表表格 -->
+  <n-data-table :data="data" :loading="loading" />
+
+  <!-- 子组件 -->
+  <UserFormModal
+    :visible="showFormModal"
+    :mode="formMode"
+    :user-data="selectedUser"
+    @close="showFormModal = false"
+    @saved="onSaved"
+  />
+</template>
+```
+
+```vue
+<!-- views/user/components/UserFormModal.vue -->
+<script setup lang="ts">
+const props = defineProps<{
+  visible: boolean;
+  mode: 'create' | 'edit';
+  userData: Partial<UserInfo> | null;
+}>();
+const emit = defineEmits<{
+  (e: 'close'): void;
+  (e: 'saved'): void;
+}>();
+
+// 表单状态、校验规则、提交逻辑都在此处
+</script>
+
+<template>
+  <n-modal :show="visible" @update:show="emit('close')">
+    <!-- 表单内容 -->
+  </n-modal>
+</template>
+```
+
+**禁止**
+
+- ❌ 在 `index.vue` 内直接写 `<n-modal>` 或 `<n-drawer>` 表单弹窗
+- ❌ 在 `index.vue` 内维护表单的详细状态（字段值、校验规则）
+- ❌ 跨模块引用子组件（子组件只能被同模块的 `index.vue` 使用）
+
 ---
 
 ## 6. 代码质量

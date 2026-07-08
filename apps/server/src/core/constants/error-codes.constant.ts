@@ -14,7 +14,8 @@ export const ErrorCodes = {
 
   USER_NOT_FOUND: { code: 20001, message: '账号或密码错误' },
   USER_ALREADY_EXISTS: { code: 20002, message: '账号已存在' },
-  PASSWORD_INCORRECT: { code: 20003, message: '账号或密码错误' },
+  EMAIL_ALREADY_EXISTS: { code: 20003, message: '邮箱已存在' },
+  PASSWORD_INCORRECT: { code: 20004, message: '账号或密码错误' },
 
   ROLE_CODE_EXISTS: { code: 21001, message: '角色编码已存在' },
   ROLE_HAS_USERS: { code: 21002, message: '该角色下存在用户，无法删除' },

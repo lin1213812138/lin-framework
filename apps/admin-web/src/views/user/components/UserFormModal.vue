@@ -192,8 +192,10 @@ async function handleSubmit() {
       message.success('更新成功');
     }
     emit('saved');
-  } catch {
-    message.error(props.mode === 'create' ? '创建失败' : '更新失败');
+  } catch (err) {
+    const errorMsg =
+      (err as { message?: string })?.message ?? (props.mode === 'create' ? '创建失败' : '更新失败');
+    message.error(errorMsg);
   }
 }
 

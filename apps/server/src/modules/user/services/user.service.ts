@@ -85,6 +85,12 @@ export class UserService {
     if (!user) {
       throw new NotFoundException(ErrorCodes.NOT_FOUND);
     }
+    if (data.email && data.email !== user.email) {
+      const existingEmail = await this.userRepository.findByEmail(data.email);
+      if (existingEmail) {
+        throw new ConflictException(ErrorCodes.EMAIL_ALREADY_EXISTS);
+      }
+    }
     return this.userRepository.update(id, data);
   }
 

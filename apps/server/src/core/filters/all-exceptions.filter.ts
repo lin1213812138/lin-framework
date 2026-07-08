@@ -1,5 +1,6 @@
 import type { ExceptionFilter, ArgumentsHost } from '@nestjs/common';
 import { Catch, HttpException, HttpStatus, Logger } from '@nestjs/common';
+import { MongoServerError } from 'mongodb';
 import type { Request, Response } from 'express';
 
 @Catch()
@@ -30,6 +31,28 @@ export class AllExceptionsFilter implements ExceptionFilter {
       const message = typeof body.message === 'string' ? body.message : '';
       const logMessage = `${request.method} ${request.url} ${status} - ${message}`;
       this.logger.error(logMessage, exception.stack ?? '');
+    } else if (
+      exception instanceof MongoServerError &&
+      exception.code === 11000
+    ) {
+      // MongoDB 唯一索引冲突兜底（E11000 duplicate key）
+      status = HttpStatus.CONFLICT;
+      const keyPattern: Record<string, unknown> =
+        (exception.keyPattern as Record<string, unknown>) ?? {};
+      const field = Object.keys(keyPattern)[0] ?? '';
+      const keyValue: Record<string, unknown> =
+        (exception.keyValue as Record<string, unknown>) ?? {};
+      const rawValue: unknown = field ? keyValue[field] : undefined;
+      const value: string =
+        rawValue != null &&
+        (typeof rawValue === 'string' ||
+          typeof rawValue === 'number' ||
+          typeof rawValue === 'boolean')
+          ? String(rawValue)
+          : '';
+      const hint = value ? `${field}: ${value}` : field;
+      body = { code: 10001, message: `${hint} 已存在` };
+      this.logger.warn(`${request.method} ${request.url} 409 - ${hint} 重复`);
     } else {
       status = HttpStatus.INTERNAL_SERVER_ERROR;
       body = { code: 10000, message: '服务器内部错误' };
