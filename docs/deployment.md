@@ -1,849 +1,483 @@
-# Deployment
+# 生产环境部署指南
 
-> **设计依据**: AGENTS.md §13 项目目录规范（docker/, scripts/, .github/workflows/）、ARCHITECTURE.md 基础设施层
->
-> 本文档定义 LIN Framework 的部署架构、环境配置、CI/CD 流程及运维规范。
+> 本文档基于 LIN Framework 当前实际配置编写，涵盖从零开始部署到 HTTPS 上线的完整流程。
 
 ---
 
-## 1. 部署架构
+## 1. 架构概览
 
 ```
-                        ┌─────────────┐
-                        │   Nginx     │  ← 反向代理 / SSL 终结
-                        │  (HTTPS)    │
-                        └──────┬──────┘
-                               │
-                  ┌────────────┴────────────┐
-                  │                         │
-          ┌───────┴───────┐         ┌───────┴───────┐
-          │  NestJS App   │         │  NestJS App   │  ← 水平扩展，无状态
-          │  (Server)     │         │  (Server)     │
-          └───────┬───────┘         └───────┬───────┘
-                  │                         │
-                  └────────────┬────────────┘
-                               │
-                    ┌──────────┴──────────┐
-                    │      Redis          │  ← Session / Cache / Queue
-                    └──────────┬──────────┘
-                               │
-                    ┌──────────┴──────────┐
-                    │     MongoDB         │  ← 主数据库
-                    │   (Replica Set)     │
-                    └─────────────────────┘
-
-          ┌─────────────────────────────────┐
-          │         Vue3 App (SPA)          │  ← Nginx 托管静态文件
-          │    ┌───────────────────────┐    │
-          │    │  CDN / Object Storage │    │  ← 静态资源
-          │    └───────────────────────┘    │
-          └─────────────────────────────────┘
+用户 → 域名 (80/443)
+        ↓
+   Nginx (lin-nginx)
+     ├── /api/* → server:6100 (NestJS)
+     ├── /docs  → server:6100 (Swagger)
+     └── /*     → web:80 (Nginx 托管前端静态文件)
+                      ↓
+              server:6100 (NestJS 后端)
+                 ├── mongodb:20010
+                 └── redis:20020
 ```
 
-### 1.1 组件说明
+### 端口总览
 
-| 组件     | 技术栈         | 部署方式            | 水平扩展          |
-| -------- | -------------- | ------------------- | ----------------- |
-| 后端 API | NestJS         | Docker 容器 / PM2   | ✅ 无状态，多实例 |
-| 前端 SPA | Vue3 + Vite    | Nginx / CDN         | ✅ 静态文件       |
-| 数据库   | MongoDB        | Replica Set / Atlas | ✅ 分片           |
-| 缓存     | Redis          | Sentinel / Cluster  | ✅ 集群           |
-| 反向代理 | Nginx          | Docker 容器         | ✅ 负载均衡       |
-| CI/CD    | GitHub Actions | —                   | —                 |
-
-### 1.2 网络拓扑
-
-```
-生产环境:
-  Internet → Nginx (443) → NestJS (3000) → MongoDB (27017)
-                                        → Redis (6379)
-
-开发环境:
-  localhost → NestJS (3000) → MongoDB (27017)
-                            → Redis (6379)
-```
+| 服务    | 容器内端口 | 宿主机端口 | 说明     |
+| ------- | ---------- | ---------- | -------- |
+| MongoDB | 20010      | 20010      | 数据库   |
+| Redis   | 20020      | 20020      | 缓存     |
+| NestJS  | 6100       | 6100       | 后端 API |
+| Nginx   | 80 / 443   | 80 / 443   | 反向代理 |
 
 ---
 
-## 2. 环境管理
+## 2. 前置条件
 
-### 2.1 环境划分
+- 一台 Linux 服务器（Ubuntu 22.04+ / CentOS 7+）
+- 已解析到服务器的域名（如 `admin.example.com`）
+- 服务器开放端口：`80`、`443`
 
-| 环境         | 用途     | 域名                        | 数据库       | 日志级别 |
-| ------------ | -------- | --------------------------- | ------------ | -------- |
-| `local`      | 本地开发 | `localhost`                 | 本地         | DEBUG    |
-| `dev`        | 开发联调 | `dev.lin-framework.com`     | 共享 Dev     | DEBUG    |
-| `staging`    | 预发布   | `staging.lin-framework.com` | 隔离 Staging | INFO     |
-| `production` | 生产     | `lin-framework.com`         | 生产集群     | WARN     |
+### 2.1 安装 Docker 和 Docker Compose
 
-### 2.2 环境变量
+#### Ubuntu / Debian
 
 ```bash
-# .env.example
-# ── 应用 ──
-NODE_ENV=development
-PORT=3000
-API_PREFIX=api/v1
+# 卸载旧版本
+sudo apt remove docker docker-engine docker.io containerd runc
 
+# 安装依赖
+sudo apt update
+sudo apt install -y ca-certificates curl
+
+# 添加 Docker 官方 GPG 密钥
+sudo install -m 0755 -d /etc/apt/keyrings
+sudo curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc
+sudo chmod a+r /etc/apt/keyrings/docker.asc
+
+# 添加 Docker APT 源
+echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+sudo apt update
+
+# 安装 Docker 和 Docker Compose 插件
+sudo apt install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+
+# 启动 Docker 并设置为开机自启
+sudo systemctl enable docker
+sudo systemctl start docker
+
+# 将当前用户加入 docker 组（免 sudo 执行 docker）
+sudo usermod -aG docker $USER
+
+# 验证安装
+docker --version
+docker compose version
+```
+
+> 执行 `usermod` 后**需要重新登录**才能免 sudo 运行 docker。如果不想重新登录，用 `newgrp docker` 临时切换。
+
+#### CentOS / RHEL / Rocky
+
+```bash
+# 卸载旧版本
+sudo yum remove docker docker-client docker-client-latest docker-common docker-latest docker-latest-logrotate docker-logrotate docker-engine
+
+# 安装 yum-utils
+sudo yum install -y yum-utils
+
+# 添加 Docker 源
+sudo yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
+
+# 安装 Docker 和 Docker Compose 插件
+sudo yum install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+
+# 启动 Docker 并设置为开机自启
+sudo systemctl enable docker
+sudo systemctl start docker
+
+# 将当前用户加入 docker 组
+sudo usermod -aG docker $USER
+
+# 验证安装
+docker --version
+docker compose version
+```
+
+#### 验证 Docker 可正常使用
+
+```bash
+# 确认 docker 命令可用
+docker --version
+# 输出示例：Docker version 27.x.x, build xxxxxxx
+
+# 确认 docker compose 插件可用
+docker compose version
+# 输出示例：Docker Compose version v2.x.x
+
+# 测试容器运行
+docker run --rm hello-world
+```
+
+---
+
+## 3. 部署步骤
+
+### 3.1 拉取代码
+
+```bash
+git clone <your-repo-url> /opt/lin-framework
+cd /opt/lin-framework
+```
+
+### 3.2 配置环境变量
+
+```bash
+cp .env .env.production
+```
+
+编辑 `.env.production`，**必须修改以下值**：
+
+```bash
 # ── MongoDB ──
-MONGODB_URI=mongodb://localhost:27017/lin-framework
-MONGODB_USER=lin
-MONGODB_PASSWORD=
+# 生产环境务必修改密码
+MONGO_ROOT_USER=admin
+MONGO_ROOT_PASSWORD=<生成随机密码>
+MONGO_APP_USER=lin_app
+MONGO_APP_PASSWORD=<生成随机密码>
 
 # ── Redis ──
-REDIS_HOST=localhost
-REDIS_PORT=6379
-REDIS_PASSWORD=
+REDIS_PASSWORD=<生成随机密码>
 
-# ── JWT ──
-JWT_SECRET=your-jwt-secret
-JWT_ACCESS_TOKEN_EXPIRES=15m
-JWT_REFRESH_TOKEN_EXPIRES=7d
-
-# ── 文件存储 ──
-STORAGE_DRIVER=local          # local | s3 | oss
-STORAGE_PATH=./uploads
-S3_BUCKET=
-S3_REGION=
-S3_ACCESS_KEY=
-S3_SECRET_KEY=
+# ── JWT（重中之重）──
+# 使用 openssl rand -base64 32 生成
+JWT_SECRET=<至少32位随机字符串>
 
 # ── 日志 ──
-LOG_LEVEL=debug
-LOG_OUTPUT=console            # console | file | elasticsearch
-
-# ── 验证码 ──
-CAPTCHA_EXPIRES=300           # 5 minutes
-
-# ── Rate Limit ──
-RATE_LIMIT_TTL=60
-RATE_LIMIT_MAX=100
+LOG_LEVEL=warn
 ```
 
-### 2.3 环境校验
+> 密码生成示例：`openssl rand -base64 24`
 
-```typescript
-// config/config.schema.ts
-// 使用 Joi 或 Zod 校验所有环境变量
-import * as Joi from 'joi';
+### 3.3 配置 Nginx 域名和 SSL
 
-export const configValidationSchema = Joi.object({
-  NODE_ENV: Joi.string()
-    .valid('local', 'development', 'staging', 'production')
-    .default('development'),
-  PORT: Joi.number().default(3000),
-  MONGODB_URI: Joi.string().required(),
-  REDIS_HOST: Joi.string().required(),
-  JWT_SECRET: Joi.string().required().min(32),
-  STORAGE_DRIVER: Joi.string().valid('local', 's3', 'oss').default('local'),
-  LOG_LEVEL: Joi.string().valid('debug', 'info', 'warn', 'error').default('info'),
-});
-```
+编辑 `docker/nginx/nginx.conf`：
 
----
-
-## 3. Docker 部署
-
-### 3.1 Docker Compose（开发环境）
-
-```yaml
-# docker/docker-compose.dev.yml
-version: '3.8'
-
-services:
-  mongodb:
-    image: mongo:7
-    restart: unless-stopped
-    ports:
-      - '27017:27017'
-    volumes:
-      - mongodb_data:/data/db
-      - ./mongo/init.js:/docker-entrypoint-initdb.d/init.js:ro
-    environment:
-      MONGO_INITDB_ROOT_USERNAME: ${MONGODB_USER}
-      MONGO_INITDB_ROOT_PASSWORD: ${MONGODB_PASSWORD}
-
-  redis:
-    image: redis:7-alpine
-    restart: unless-stopped
-    ports:
-      - '6379:6379'
-    command: redis-server --requirepass ${REDIS_PASSWORD}
-    volumes:
-      - redis_data:/data
-
-  server:
-    build:
-      context: ../packages/server
-      dockerfile: Dockerfile
-      target: dev
-    restart: unless-stopped
-    ports:
-      - '3000:3000'
-    volumes:
-      - ../packages/server/src:/app/src:ro
-    environment:
-      NODE_ENV: development
-      MONGODB_URI: mongodb://${MONGODB_USER}:${MONGODB_PASSWORD}@mongodb:27017/lin-framework
-      REDIS_HOST: redis
-      REDIS_PORT: 6379
-      REDIS_PASSWORD: ${REDIS_PASSWORD}
-      JWT_SECRET: ${JWT_SECRET}
-    depends_on:
-      - mongodb
-      - redis
-
-  web:
-    build:
-      context: ../packages/web
-      dockerfile: Dockerfile
-      target: dev
-    restart: unless-stopped
-    ports:
-      - '5173:5173'
-    volumes:
-      - ../packages/web/src:/app/src:ro
-    depends_on:
-      - server
-
-volumes:
-  mongodb_data:
-  redis_data:
-```
-
-### 3.2 Docker Compose（生产环境）
-
-```yaml
-# docker/docker-compose.prod.yml
-version: '3.8'
-
-services:
-  mongodb:
-    image: mongo:7
-    restart: unless-stopped
-    volumes:
-      - mongodb_data:/data/db
-    environment:
-      MONGO_INITDB_ROOT_USERNAME: ${MONGODB_USER}
-      MONGO_INITDB_ROOT_PASSWORD: ${MONGODB_PASSWORD}
-    networks:
-      - internal
-
-  redis:
-    image: redis:7-alpine
-    restart: unless-stopped
-    command: redis-server --requirepass ${REDIS_PASSWORD}
-    volumes:
-      - redis_data:/data
-    networks:
-      - internal
-
-  server:
-    build:
-      context: ../packages/server
-      dockerfile: Dockerfile
-      target: prod
-    restart: unless-stopped
-    environment:
-      NODE_ENV: production
-      MONGODB_URI: ${MONGODB_URI}
-      REDIS_HOST: redis
-      REDIS_PASSWORD: ${REDIS_PASSWORD}
-      JWT_SECRET: ${JWT_SECRET}
-      LOG_LEVEL: warn
-    depends_on:
-      - mongodb
-      - redis
-    networks:
-      - internal
-      - web
-
-  nginx:
-    image: nginx:alpine
-    restart: unless-stopped
-    ports:
-      - '80:80'
-      - '443:443'
-    volumes:
-      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
-      - ./nginx/ssl:/etc/nginx/ssl:ro
-      - web_dist:/usr/share/nginx/html:ro
-    depends_on:
-      - server
-    networks:
-      - web
-
-  web:
-    build:
-      context: ../packages/web
-      dockerfile: Dockerfile
-      target: prod
-    volumes:
-      - web_dist:/app/dist
-
-volumes:
-  mongodb_data:
-  redis_data:
-  web_dist:
-
-networks:
-  internal:
-  web:
-```
-
-### 3.3 Dockerfile
-
-```dockerfile
-# packages/server/Dockerfile
-
-# ── Dev Stage ──
-FROM node:20-alpine AS dev
-
-WORKDIR /app
-
-COPY package.json pnpm-lock.yaml ./
-RUN corepack enable && pnpm install --frozen-lockfile
-
-COPY . .
-EXPOSE 3000
-CMD ["pnpm", "run", "start:dev"]
-
-# ── Build Stage ──
-FROM node:20-alpine AS build
-
-WORKDIR /app
-
-COPY package.json pnpm-lock.yaml ./
-RUN corepack enable && pnpm install --frozen-lockfile
-
-COPY . .
-RUN pnpm run build
-
-# ── Prod Stage ──
-FROM node:20-alpine AS prod
-
-WORKDIR /app
-
-RUN apk add --no-cache tini
-
-COPY package.json pnpm-lock.yaml ./
-RUN corepack enable && pnpm install --frozen-lockfile --prod
-
-COPY --from=build /app/dist ./dist
-
-USER node
-EXPOSE 3000
-
-ENTRYPOINT ["/sbin/tini", "--"]
-CMD ["node", "dist/main.js"]
-```
-
-```dockerfile
-# packages/web/Dockerfile
-
-# ── Dev Stage ──
-FROM node:20-alpine AS dev
-
-WORKDIR /app
-
-COPY package.json pnpm-lock.yaml ./
-RUN corepack enable && pnpm install --frozen-lockfile
-
-COPY . .
-EXPOSE 5173
-CMD ["pnpm", "run", "dev"]
-
-# ── Build Stage ──
-FROM node:20-alpine AS build
-
-WORKDIR /app
-
-COPY package.json pnpm-lock.yaml ./
-RUN corepack enable && pnpm install --frozen-lockfile
-
-COPY . .
-RUN pnpm run build
-
-# ── Prod Stage ──
-FROM nginx:alpine AS prod
-
-COPY --from=build /app/dist /usr/share/nginx/html
-COPY nginx.conf /etc/nginx/conf.d/default.conf
-
-EXPOSE 80
-CMD ["nginx", "-g", "daemon off;"]
-```
-
----
-
-## 4. Nginx 配置
+**第一步** — 将 `server_name localhost` 改为你的域名
 
 ```nginx
-# docker/nginx/nginx.conf
-
-upstream server_cluster {
-    least_conn;
-    server server:3000 max_fails=3 fail_timeout=30s;
-    # 多实例：server server2:3000 max_fails=3 fail_timeout=30s;
-}
-
 server {
     listen 80;
-    server_name lin-framework.com;
-    return 301 https://$host$request_uri;
+    server_name admin.example.com;  # ← 改为你的域名
+    # ...
+}
+```
+
+**第二步** — 申请 SSL 证书
+
+```bash
+# 先启动 nginx（仅 HTTP），用于 Let's Encrypt 验证
+docker compose -f docker-compose.yml -f docker/compose/docker-compose.prod.yml up -d nginx
+
+# 安装 certbot 并申请证书
+sudo apt install certbot -y
+sudo certbot certonly --webroot \
+  -w /usr/share/nginx/html \
+  -d admin.example.com
+
+# 证书路径：/etc/letsencrypt/live/admin.example.com/
+```
+
+**第三步** — 更新 Nginx 配置，启用 HTTPS
+
+将 `docker/nginx/nginx.conf` 替换为以下完整配置（替换 `admin.example.com` 为你的域名）：
+
+```nginx
+events {
+  worker_connections 1024;
 }
 
-server {
-    listen 443 ssl http2;
-    server_name lin-framework.com;
+http {
+  include       /etc/nginx/mime.types;
+  default_type  application/octet-stream;
 
-    ssl_certificate     /etc/nginx/ssl/cert.pem;
-    ssl_certificate_key /etc/nginx/ssl/key.pem;
+  log_format main '$remote_addr - $remote_user [$time_local] "$request" '
+                  '$status $body_bytes_sent "$http_referer" '
+                  '"$http_user_agent" "$http_x_forwarded_for"';
+
+  access_log /var/log/nginx/access.log main;
+  error_log  /var/log/nginx/error.log warn;
+
+  sendfile        on;
+  keepalive_timeout 65;
+  client_max_body_size 50m;
+
+  # Gzip
+  gzip on;
+  gzip_types text/plain text/css application/json application/javascript
+             text/xml application/xml application/xml+rss text/javascript;
+
+  # 后端 API upstream
+  upstream backend {
+    server server:6100;
+  }
+
+  # 前端 upstream
+  upstream frontend {
+    server web:80;
+  }
+
+  # ── HTTP → HTTPS 重定向 ──
+  server {
+    listen 80;
+    server_name admin.example.com;
+    return 301 https://$host$request_uri;
+  }
+
+  # ── HTTPS ──
+  server {
+    listen 443 ssl http2;
+    server_name admin.example.com;
+
+    # SSL 证书（certbot 默认路径）
+    ssl_certificate     /etc/letsencrypt/live/admin.example.com/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/admin.example.com/privkey.pem;
     ssl_protocols       TLSv1.2 TLSv1.3;
     ssl_ciphers         HIGH:!aNULL:!MD5;
 
-    # ── 前端 SPA ──
-    root /usr/share/nginx/html;
-    index index.html;
-
-    location / {
-        try_files $uri $uri/ /index.html;
-        expires -1;
-        add_header Cache-Control 'no-store, no-cache';
-    }
-
-    # ── 静态资源缓存 ──
-    location /assets/ {
-        expires 1y;
-        add_header Cache-Control 'public, immutable';
-    }
-
-    # ── API 反向代理 ──
-    location /api/ {
-        proxy_pass http://server_cluster;
-        proxy_http_version 1.1;
-        proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection 'upgrade';
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-        proxy_read_timeout 60s;
-        proxy_send_timeout 60s;
-
-        # 限制 Body 大小为 10MB
-        client_max_body_size 10m;
-    }
-
-    # ── Rate Limit ──
-    limit_req_zone $binary_remote_addr zone=api:10m rate=100r/s;
-    location /api/ {
-        limit_req zone=api burst=200 nodelay;
-        # ...
-    }
-
-    # ── 安全头 ──
+    # 安全头
     add_header X-Frame-Options 'SAMEORIGIN' always;
     add_header X-Content-Type-Options 'nosniff' always;
     add_header X-XSS-Protection '1; mode=block' always;
-    add_header Referrer-Policy 'strict-origin-when-cross-origin' always;
-    add_header Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:;" always;
 
-    # ── 日志 ──
-    access_log /var/log/nginx/access.log json;
-    error_log  /var/log/nginx/error.log warn;
-
-    # ── 健康检查 ──
+    # Health check
     location /health {
-        access_log off;
-        return 200 'OK';
-        add_header Content-Type text/plain;
+      access_log off;
+      return 200 'OK';
+      add_header Content-Type text/plain;
     }
-}
-```
 
----
+    # API
+    location /api/ {
+      proxy_pass http://backend;
+      proxy_http_version 1.1;
+      proxy_set_header Upgrade $http_upgrade;
+      proxy_set_header Connection 'upgrade';
+      proxy_set_header Host $host;
+      proxy_set_header X-Real-IP $remote_addr;
+      proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+      proxy_set_header X-Forwarded-Proto $scheme;
+      proxy_cache_bypass $http_upgrade;
+      proxy_connect_timeout 60s;
+      proxy_send_timeout 60s;
+      proxy_read_timeout 60s;
+    }
 
-## 5. CI/CD
+    # Swagger
+    location /docs {
+      proxy_pass http://backend;
+      proxy_http_version 1.1;
+      proxy_set_header Host $host;
+      proxy_set_header X-Real-IP $remote_addr;
+      proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+      proxy_set_header X-Forwarded-Proto $scheme;
+    }
 
-### 5.1 GitHub Actions
+    # WebSocket
+    location /socket.io/ {
+      proxy_pass http://backend;
+      proxy_http_version 1.1;
+      proxy_set_header Upgrade $http_upgrade;
+      proxy_set_header Connection 'upgrade';
+      proxy_set_header Host $host;
+      proxy_cache_bypass $http_upgrade;
+    }
 
-```yaml
-# .github/workflows/ci.yml
-name: CI
-
-on:
-  push:
-    branches: [main, develop]
-  pull_request:
-    branches: [main]
-
-jobs:
-  lint:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          cache: 'pnpm'
-      - run: corepack enable
-      - run: pnpm install --frozen-lockfile
-      - run: pnpm lint
-      - run: pnpm format:check
-
-  typecheck:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          cache: 'pnpm'
-      - run: corepack enable
-      - run: pnpm install --frozen-lockfile
-      - run: pnpm typecheck
-
-  test:
-    runs-on: ubuntu-latest
-    needs: [lint, typecheck]
-    services:
-      mongodb:
-        image: mongo:7
-        ports:
-          - '27017:27017'
-      redis:
-        image: redis:7-alpine
-        ports:
-          - '6379:6379'
-
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          cache: 'pnpm'
-      - run: corepack enable
-      - run: pnpm install --frozen-lockfile
-      - run: pnpm test:cov
-      - uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: coverage
-          path: coverage/
-
-  build:
-    runs-on: ubuntu-latest
-    needs: [test]
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          cache: 'pnpm'
-      - run: corepack enable
-      - run: pnpm install --frozen-lockfile
-      - run: pnpm build
-      - uses: actions/upload-artifact@v4
-        with:
-          name: dist
-          path: |
-            packages/server/dist
-            packages/web/dist
-```
-
-```yaml
-# .github/workflows/deploy.yml
-name: Deploy
-
-on:
-  push:
-    branches: [main]
-
-jobs:
-  deploy:
-    runs-on: ubuntu-latest
-    needs: [build]
-
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Login to Docker Hub
-        uses: docker/login-action@v3
-        with:
-          username: ${{ vars.DOCKER_USER }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
-
-      - name: Build & Push Server Image
-        uses: docker/build-push-action@v5
-        with:
-          context: packages/server
-          push: true
-          tags: |
-            ${{ vars.DOCKER_USER }}/lin-server:latest
-            ${{ vars.DOCKER_USER }}/lin-server:${{ github.sha }}
-
-      - name: Build & Push Web Image
-        uses: docker/build-push-action@v5
-        with:
-          context: packages/web
-          push: true
-          tags: |
-            ${{ vars.DOCKER_USER }}/lin-web:latest
-            ${{ vars.DOCKER_USER }}/lin-web:${{ github.sha }}
-
-      - name: Deploy to Server
-        uses: appleboy/ssh-action@v1.0.3
-        with:
-          host: ${{ secrets.DEPLOY_HOST }}
-          username: ${{ secrets.DEPLOY_USER }}
-          key: ${{ secrets.DEPLOY_KEY }}
-          script: |
-            cd /opt/lin-framework
-            docker compose pull
-            docker compose up -d --remove-orphans
-            docker image prune -f
-```
-
-### 5.2 部署流程
-
-```
-Commit → CI (Lint → TypeCheck → Test → Build)
-  ↓
-Docker Image Push (Server + Web)
-  ↓
-SSH → Pull Images → docker compose up -d
-  ↓
-Health Check → 完成
-```
-
----
-
-## 6. 数据库运维
-
-### 6.1 备份
-
-```bash
-# scripts/backup.sh
-#!/bin/bash
-
-BACKUP_DIR="/backups/mongodb"
-TIMESTAMP=$(date +%Y%m%d_%H%M%S)
-FILENAME="lin-framework_${TIMESTAMP}.gz"
-
-mongodump \
-  --uri="${MONGODB_URI}" \
-  --gzip \
-  --archive="${BACKUP_DIR}/${FILENAME}"
-
-# 保留最近 30 天备份
-find "${BACKUP_DIR}" -name "*.gz" -mtime +30 -delete
-
-# 上传到 S3（可选）
-# aws s3 cp "${BACKUP_DIR}/${FILENAME}" "s3://lin-backups/mongodb/${FILENAME}"
-```
-
-### 6.2 恢复
-
-```bash
-mongorestore \
-  --uri="${MONGODB_URI}" \
-  --gzip \
-  --archive="${BACKUP_DIR}/lin-framework_20260101_000000.gz"
-```
-
-### 6.3 索引管理
-
-- 所有查询字段必须建立索引
-- 联合索引：等值条件在前，排序在后
-- 定期审查慢查询日志（`db.currentOp()` / `db.setProfilingLevel(1)`）
-- TTL 索引用于自动过期（验证码、临时 Token）
-
----
-
-## 7. 日志管理
-
-### 7.1 日志聚合
-
-```
-NestJS Logger → stdout (JSON format)
-  ↓
-容器 stdout/stderr
-  ↓
-Docker Log Driver → Loki / CloudWatch
-  ↓
-Grafana 面板
-```
-
-### 7.2 日志格式
-
-```json
-{
-  "level": "info",
-  "message": "user login success",
-  "timestamp": "2026-01-15T10:30:00.000Z",
-  "context": "AuthService",
-  "requestId": "req_a1b2c3d4",
-  "userId": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
-  "duration": 42
-}
-```
-
-### 7.3 日志级别
-
-| 环境        | 级别  |
-| ----------- | ----- |
-| local / dev | DEBUG |
-| staging     | INFO  |
-| production  | WARN  |
-
----
-
-## 8. 监控告警
-
-### 8.1 健康检查端点
-
-| 端点                | 说明                        |
-| ------------------- | --------------------------- |
-| `GET /health`       | 基础存活检查                |
-| `GET /health/ready` | 就绪检查（数据库/缓存连接） |
-| `GET /health/live`  | 存活检查                    |
-
-```typescript
-@Controller('health')
-export class HealthController {
-  constructor(
-    private readonly dbHealth: DatabaseHealthIndicator,
-    private readonly redisHealth: RedisHealthIndicator,
-  ) {}
-
-  @Get('ready')
-  async check() {
-    const db = await this.dbHealth.isHealthy();
-    const redis = await this.redisHealth.isHealthy();
-    return { status: db && redis ? 'ok' : 'degraded', db, redis };
+    # 前端 SPA
+    location / {
+      proxy_pass http://frontend;
+      proxy_http_version 1.1;
+      proxy_set_header Host $host;
+      proxy_set_header X-Real-IP $remote_addr;
+      proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+      proxy_set_header X-Forwarded-Proto $scheme;
+      proxy_intercept_errors on;
+      recursive_error_pages on;
+      error_page 404 =200 /index.html;
+    }
   }
 }
 ```
 
-### 8.2 核心监控指标
+> **注意**：Nginx 容器通过 volume 挂载 `nginx.conf`，修改后需要重启容器生效。SSL 证书需要让 Nginx 容器能读取到宿主机的 `/etc/letsencrypt` 目录。
 
-| 指标           | 采集方式                        | 告警阈值 |
-| -------------- | ------------------------------- | -------- |
-| API 响应时间   | Prometheus Histogram            | P99 > 1s |
-| 请求错误率     | Prometheus Counter              | > 5%     |
-| MongoDB 连接数 | `db.serverStatus().connections` | > 80%    |
-| Redis 内存     | `INFO memory`                   | > 80%    |
-| CPU 使用率     | Docker / OS                     | > 85%    |
-| 内存使用率     | Docker / OS                     | > 85%    |
+**第四步** — 更新 `docker-compose.prod.yml`，让 Nginx 容器能访问宿主机证书
 
-### 8.3 Prometheus 指标暴露
+编辑 `docker/compose/docker-compose.prod.yml`，在 `nginx` 服务的 `volumes` 中添加证书挂载：
 
-```typescript
-// prometheus.module.ts 或使用 @willsoto/nestjs-prometheus
-import { PrometheusModule } from '@willsoto/nestjs-prometheus';
+```yaml
+nginx:
+  image: nginx:alpine
+  container_name: lin-nginx
+  restart: unless-stopped
+  ports:
+    - '80:80'
+    - '443:443'
+  volumes:
+    - ../nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    - /etc/letsencrypt:/etc/letsencrypt:ro # ← 添加这行
+  depends_on:
+    - server
+    - web
+```
 
-@Module({
-  imports: [
-    PrometheusModule.register({
-      path: '/metrics',
-      defaultMetrics: { enabled: true },
-    }),
-  ],
-})
-export class MonitorModule {}
+### 3.4 启动服务
+
+```bash
+# 首次部署需要构建镜像
+docker compose -f docker-compose.yml -f docker/compose/docker-compose.prod.yml up -d --build
+
+# 后续更新只需重新构建变更的服务
+docker compose -f docker-compose.yml -f docker/compose/docker-compose.prod.yml up -d --build server web
+```
+
+### 3.5 验证部署
+
+```bash
+# 查看所有容器状态
+docker ps
+
+# 检查后端日志
+docker logs lin-server --tail 20
+
+# 测试 API
+curl https://admin.example.com/api/v1/users
+# 应返回 JSON 响应（可能要求认证，但说明服务运行正常）
+
+# 测试前端
+curl -I https://admin.example.com/
+# 应返回 200
+
+# Swagger 文档
+curl https://admin.example.com/docs
+# 应返回 Swagger UI 页面
 ```
 
 ---
 
-## 9. 安全配置
+## 4. SSL 证书自动续签
 
-### 9.1 网络安全
+Let's Encrypt 证书有效期 90 天，需要自动续签。
 
-- 数据库仅监听内网（`bindIp: 127.0.0.1` 或 Docker internal network）
-- Redis 设置 `requirepass`
-- Nginx 仅暴露 80/443 端口
-- 所有 API 经过 Nginx 反向代理
-
-### 9.2 密钥管理
+### 4.1 方案一：宿主机 cron
 
 ```bash
-# 禁止将密钥提交到 Git
-# 生产环境密钥通过 CI/CD Secrets 注入
-# 或使用 Vault / AWS Secrets Manager
+# 编辑 crontab
+sudo crontab -e
 
-# .gitignore
-.env
-.env.local
-*.key
-ssl/
+# 添加以下行（每天凌晨检查续签）
+0 3 * * * certbot renew --quiet && docker exec lin-nginx nginx -s reload
 ```
 
-### 9.3 HTTPS
+### 4.2 方案二：使用 acme.sh（推荐）
 
 ```bash
-# 使用 Let's Encrypt 自动续签
-# docker/nginx/ssl/ 目录挂载证书
+# 安装 acme.sh
+curl https://get.acme.sh | sh
 
-certbot certonly --webroot \
-  -w /usr/share/nginx/html \
-  -d lin-framework.com
+# 申请证书
+~/.acme.sh/acme.sh --issue -d admin.example.com --webroot /usr/share/nginx/html
+
+# 安装证书到 Nginx 挂载目录
+~/.acme.sh/acme.sh --install-cert -d admin.example.com \
+  --key-file /etc/letsencrypt/live/admin.example.com/privkey.pem \
+  --fullchain-file /etc/letsencrypt/live/admin.example.com/fullchain.pem \
+  --reloadcmd "docker exec lin-nginx nginx -s reload"
 ```
 
-### 9.4 Rate Limiting
+acme.sh 会自动创建 cron 任务，无需额外配置。
 
-```typescript
-import { ThrottlerModule } from '@nestjs/throttler';
+---
 
-@Module({
-  imports: [
-    ThrottlerModule.forRoot({
-      throttlers: [
-        { ttl: 60000, limit: 100 }, // 全局：每分钟 100 次
-      ],
-    }),
-  ],
-})
-export class AppModule {}
+## 5. 日常运维
 
-// 更细粒度的限制在 Nginx 层控制
+### 5.1 查看日志
+
+```bash
+# 后端
+docker logs lin-server -f
+
+# Nginx
+docker logs lin-nginx -f
+
+# 前端（生产环境是 Nginx，日志在 Nginx 中）
+```
+
+### 5.2 更新代码
+
+```bash
+cd /opt/lin-framework
+git pull
+
+# 重新构建并重启
+docker compose -f docker-compose.yml -f docker/compose/docker-compose.prod.yml up -d --build
+```
+
+### 5.3 数据库备份
+
+```bash
+# 手动备份
+docker exec lin-mongodb mongodump \
+  --port 20010 \
+  -u $MONGO_ROOT_USER -p $MONGO_ROOT_PASSWORD \
+  --authenticationDatabase admin \
+  --db lin_framework \
+  --gzip \
+  --archive=/backup/lin_framework_$(date +%Y%m%d).gz
+
+# 从容器复制到宿主机
+docker cp lin-mongodb:/backup/lin_framework_$(date +%Y%m%d).gz /opt/backups/
+```
+
+### 5.4 停止/重启
+
+```bash
+# 停止所有服务（保留数据卷）
+docker compose -f docker-compose.yml -f docker/compose/docker-compose.prod.yml down
+
+# 完全清理（会删除数据）
+docker compose -f docker-compose.yml -f docker/compose/docker-compose.prod.yml down -v
 ```
 
 ---
 
-## 10. 部署检查清单
-
-### 10.1 预部署
-
-- [ ] 所有环境变量已配置
-- [ ] `.env.example` 与实际环境变量一致
-- [ ] 数据库备份完成
-- [ ] 数据库迁移/Rollback 已验证
-- [ ] 索引已创建
-- [ ] CI 全部通过（Lint / TypeCheck / Test / Build）
-
-### 10.2 部署中
-
-- [ ] 滚动更新（先启动新实例，再停止旧实例）
-- [ ] 健康检查通过后再切流量
-- [ ] 数据库迁移向前兼容
-- [ ] 缓存预热（可选）
-
-### 10.3 部署后
-
-- [ ] API 冒烟测试通过
-- [ ] 关键业务流程验证（登录、注册、列表查询）
-- [ ] 监控告警正常
-- [ ] 日志正常采集
-- [ ] 回滚方案就绪
-
-### 10.4 回滚
+## 6. 回滚
 
 ```bash
-# 回滚到上一个版本
-docker compose stop server
-docker compose up -d server  # docker-compose.yml 指定上个版本 tag
+# 回滚到上一个镜像版本
+# 重新构建时利用了 Docker 缓存，如需指定版本：
 
-# 数据库回滚（如有）
-# npx nestjs-command rollup:revert
+# 1. 回滚 server
+docker compose -f docker-compose.yml -f docker/compose/docker-compose.prod.yml up -d server
+
+# 2. 如需指定特定镜像，修改 docker-compose.prod.yml 中的 build 为 image
+#    或使用 git revert 回退代码后重新构建
 ```
+
+---
+
+## 7. 部署检查清单
+
+### 部署前
+
+- [ ] `.env.production` 已配置，`JWT_SECRET` 已改为随机字符串
+- [ ] MongoDB/Redis 密码已改为随机字符串
+- [ ] Nginx `server_name` 已改为域名
+- [ ] SSL 证书已申请并挂载
+- [ ] 服务器 80/443 端口已开放
+- [ ] DNS 已解析到服务器 IP
+
+### 部署后
+
+- [ ] `curl https://<域名>/health` 返回 `OK`
+- [ ] `curl https://<域名>/api/v1/...` 正常响应
+- [ ] `curl -I https://<域名>/` 返回 200
+- [ ] 浏览器打开 HTTPS 地址无证书警告
+- [ ] `docker logs lin-server` 无错误日志
