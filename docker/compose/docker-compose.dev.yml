@@ -1,33 +1,44 @@
 services:
   mongodb:
+    image: mongo:8
+    container_name: lin-mongodb
+    restart: unless-stopped
     ports:
-      - "27017:27017"
+      - "20010:20010"
+    command: mongod --port 20010
     volumes:
-      - ../docker/mongodb/init.js:/docker-entrypoint-initdb.d/init.js:ro
+      - mongodb_data:/data/db
+      - ../mongodb/init.js:/docker-entrypoint-initdb.d/init.js:ro
 
   redis:
+    image: redis:8-alpine
+    container_name: lin-redis
+    restart: unless-stopped
     ports:
-      - "6379:6379"
+      - "20020:20020"
+    command: redis-server --appendonly yes --port 20020
+    volumes:
+      - redis_data:/data
 
   # Development services - hot reload via mounted volumes
   server:
     build:
-      context: ../
+      context: ../../
       dockerfile: apps/server/Dockerfile
       target: development
     container_name: lin-server
     restart: unless-stopped
     ports:
-      - "3000:3000"
+      - "6100:6100"
     volumes:
-      - ../apps/server/src:/app/apps/server/src
-      - ../packages:/app/packages
+      - ../../apps/server/src:/app/apps/server/src
+      - ../../packages:/app/packages
     environment:
       - NODE_ENV=development
-      - PORT=3000
-      - MONGODB_URI=mongodb://mongodb:27017/lin_framework
+      - PORT=6100
+      - MONGODB_URI=mongodb://mongodb:20010/lin_framework
       - REDIS_HOST=redis
-      - REDIS_PORT=6379
+      - REDIS_PORT=20020
       - REDIS_PASSWORD=
       - JWT_SECRET=dev-secret-key-min-32-chars-long-for-development
       - LOG_LEVEL=debug
@@ -37,16 +48,16 @@ services:
 
   web:
     build:
-      context: ../
+      context: ../../
       dockerfile: apps/admin-web/Dockerfile
       target: development
     container_name: lin-web
     restart: unless-stopped
     ports:
-      - "80:80"
+      - "5173:5173"  # Vite dev server
     volumes:
-      - ../apps/admin-web/src:/app/apps/admin-web/src
-      - ../packages:/app/packages
+      - ../../apps/admin-web/src:/app/apps/admin-web/src
+      - ../../packages:/app/packages
     environment:
       - NODE_ENV=development
     depends_on:
@@ -59,7 +70,11 @@ services:
     ports:
       - "8080:80"
     volumes:
-      - ../docker/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ../nginx/nginx.dev.conf:/etc/nginx/nginx.conf:ro
     depends_on:
       - server
       - web
+
+volumes:
+  mongodb_data:
+  redis_data:

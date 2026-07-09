@@ -4,7 +4,8 @@ services:
     container_name: lin-mongodb
     restart: unless-stopped
     ports:
-      - "27017:27017"
+      - "20010:20010"
+    command: mongod --port 20010
     environment:
       MONGO_INITDB_DATABASE: lin_framework
     volumes:
@@ -15,8 +16,8 @@ services:
     container_name: lin-redis
     restart: unless-stopped
     ports:
-      - "6379:6379"
-    command: redis-server --appendonly yes
+      - "20020:20020"
+    command: redis-server --appendonly yes --port 20020
     volumes:
       - redis_data:/data
 

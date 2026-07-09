@@ -1,8 +1,9 @@
 services:
   mongodb:
+    command: mongod --port 20010
     volumes:
       - mongodb_data:/data/db
-      - ../docker/mongodb/init.js:/docker-entrypoint-initdb.d/init.js:ro
+      - ../mongodb/init.js:/docker-entrypoint-initdb.d/init.js:ro
     environment:
       MONGO_INITDB_ROOT_USERNAME: ${MONGO_ROOT_USER:-admin}
       MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD:-changeme}
@@ -10,23 +11,23 @@ services:
   redis:
     volumes:
       - redis_data:/data
-    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD:-changeme}
+    command: redis-server --appendonly yes --port 20020 --requirepass ${REDIS_PASSWORD:-changeme}
 
   server:
     build:
-      context: ../
+      context: ../../
       dockerfile: apps/server/Dockerfile
       target: production
     container_name: lin-server
     restart: unless-stopped
     ports:
-      - "3000:3000"
+      - "6100:6100"
     environment:
       - NODE_ENV=production
-      - PORT=3000
-      - MONGODB_URI=mongodb://${MONGO_APP_USER:-lin_app}:${MONGO_APP_PASSWORD:-changeme}@mongodb:27017/lin_framework?authSource=admin
+      - PORT=6100
+      - MONGODB_URI=mongodb://${MONGO_APP_USER:-lin_app}:${MONGO_APP_PASSWORD:-changeme}@mongodb:20010/lin_framework?authSource=admin
       - REDIS_HOST=redis
-      - REDIS_PORT=6379
+      - REDIS_PORT=20020
       - REDIS_PASSWORD=${REDIS_PASSWORD:-changeme}
       - JWT_SECRET=${JWT_SECRET}
       - LOG_LEVEL=${LOG_LEVEL:-info}
@@ -36,7 +37,7 @@ services:
 
   web:
     build:
-      context: ../
+      context: ../../
       dockerfile: apps/admin-web/Dockerfile
       target: production
     container_name: lin-web
@@ -54,7 +55,7 @@ services:
       - "80:80"
       - "443:443"
     volumes:
-      - ../docker/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ../nginx/nginx.conf:/etc/nginx/nginx.conf:ro
     depends_on:
       - server
       - web
