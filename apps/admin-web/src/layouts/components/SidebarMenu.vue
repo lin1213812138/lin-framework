@@ -4,12 +4,15 @@ import { useRoute, useRouter } from 'vue-router';
 import type { Component, MenuOption } from 'naive-ui';
 import { NIcon } from 'naive-ui';
 import {
+  BarChartOutline,
+  ConstructOutline,
   FolderOutline,
   GridOutline,
   KeyOutline,
   MenuOutline,
   PersonOutline,
   ShieldCheckmarkOutline,
+  SpeedometerOutline,
 } from '@vicons/ionicons5';
 import { useAppStore } from '@/stores';
 import type { MenuTreeNode } from '@/api/menu';
@@ -25,6 +28,9 @@ const loadingMenus = ref(true);
 /** 图标映射 */
 const iconMap: Record<string, Component> = {
   dashboard: GridOutline,
+  console: SpeedometerOutline,
+  workbench: ConstructOutline,
+  analysis: BarChartOutline,
   user: PersonOutline,
   role: ShieldCheckmarkOutline,
   menu: MenuOutline,
@@ -53,7 +59,6 @@ function toMenuOptions(nodes: MenuTreeNode[]): MenuOption[] {
     }
 
     if (node.children && node.children.length > 0) {
-      // 只有菜单类型才可导航
       option.children = toMenuOptions(node.children);
     }
 
@@ -63,7 +68,16 @@ function toMenuOptions(nodes: MenuTreeNode[]): MenuOption[] {
 
 /** 静态菜单（数据库无菜单数据时的后备方案） */
 const STATIC_MENUS: MenuOption[] = [
-  { label: '仪表盘', key: '/', icon: getIcon('dashboard') },
+  {
+    label: '主控台',
+    key: '/dashboard',
+    icon: getIcon('dashboard'),
+    children: [
+      { label: '控制台', key: '/dashboard/console', icon: getIcon('console') },
+      { label: '工作台', key: '/dashboard/workbench', icon: getIcon('workbench') },
+      { label: '分析页', key: '/dashboard/analysis', icon: getIcon('analysis') },
+    ],
+  },
   { label: '用户管理', key: '/users', icon: getIcon('user') },
   { label: '角色管理', key: '/roles', icon: getIcon('role') },
   { label: '菜单管理', key: '/menus', icon: getIcon('menu') },

@@ -1308,16 +1308,16 @@ describe('UserService', () => {
 
 ### 19.1 文档清单
 
-| 文件                     | 行数 | 内容概要                                                                  |
-| ------------------------ | ---- | ------------------------------------------------------------------------- |
-| `docs/coding-style.md`   | 727  | 编码规范、TypeScript 规范、命名规范、AI Coding 规范、代码质量要求         |
-| `docs/api.md`            | 1045 | API 设计规范、统一响应格式、认证鉴权、所有业务接口定义                    |
-| `docs/database.md`       | 539  | 数据库设计、Base Schema、MongoDB Collection、索引策略、Redis 数据结构与缓存 |
-| `docs/deployment.md`     | 850  | 部署架构、环境配置、CI/CD 流程、Docker/Nginx 配置、运维规范               |
-| `docs/base-schema.md`    | 237  | 所有数据模型公共基类字段定义（BaseEntity / TreeEntity / Auditable 等）    |
-| `ROADMAP.md`             | 650  | 版本规划、功能范围、交付标准、开发进度追踪                                |
-| `ARCHITECTURE.md`        | 506  | 分层架构、模块组织、请求处理流程、数据流、关键设计决策                    |
-| `README.md`              | 192  | 项目定位、技术栈、快速启动、核心功能概览                                  |
+| 文件                   | 行数 | 内容概要                                                                    |
+| ---------------------- | ---- | --------------------------------------------------------------------------- |
+| `docs/coding-style.md` | 727  | 编码规范、TypeScript 规范、命名规范、AI Coding 规范、代码质量要求           |
+| `docs/api.md`          | 1045 | API 设计规范、统一响应格式、认证鉴权、所有业务接口定义                      |
+| `docs/database.md`     | 539  | 数据库设计、Base Schema、MongoDB Collection、索引策略、Redis 数据结构与缓存 |
+| `docs/deployment.md`   | 850  | 部署架构、环境配置、CI/CD 流程、Docker/Nginx 配置、运维规范                 |
+| `docs/base-schema.md`  | 237  | 所有数据模型公共基类字段定义（BaseEntity / TreeEntity / Auditable 等）      |
+| `ROADMAP.md`           | 650  | 版本规划、功能范围、交付标准、开发进度追踪                                  |
+| `ARCHITECTURE.md`      | 506  | 分层架构、模块组织、请求处理流程、数据流、关键设计决策                      |
+| `README.md`            | 192  | 项目定位、技术栈、快速启动、核心功能概览                                    |
 
 ### 19.2 预读规则
 
