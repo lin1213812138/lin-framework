@@ -14,8 +14,10 @@ export const envValidationSchema = Joi.object({
     .valid('development', 'staging', 'production')
     .default('development'),
 
-  /** 应用监听端口 */
-  PORT: Joi.number().default(3000),
+  /** 应用监听端口，必填 */
+  PORT: Joi.number()
+    .required()
+    .messages({ 'any.required': 'PORT is required' }),
 
   /** MongoDB 连接 URI，必填 */
   MONGODB_URI: Joi.string()

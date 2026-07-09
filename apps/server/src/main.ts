@@ -5,6 +5,7 @@ import { NestExpressApplication } from '@nestjs/platform-express';
 import { AppModule } from '@/app.module';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import type { ValidationError } from 'class-validator';
+import { ConfigService } from '@nestjs/config';
 
 import { AllExceptionsFilter } from '@/core/filters';
 import { TransformInterceptor } from '@/core/interceptors';
@@ -94,7 +95,8 @@ async function bootstrap() {
 
   SwaggerModule.setup('docs', app, document);
 
-  const port = process.env.PORT ?? 6100;
+  const configService = app.get(ConfigService);
+  const port = configService.get<number>('port')!;
   await app.listen(port);
   Logger.log(`Application is running on http://localhost:${port}`, 'Bootstrap');
 }
