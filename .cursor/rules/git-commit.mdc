@@ -1,0 +1,58 @@
+---
+description: Git 提交信息规范 — 中文描述 + Conventional Commits 格式
+alwaysApply: true
+---
+
+# Git 提交规范
+
+## 格式
+
+```
+<type>(<scope>): <中文描述>
+
+<可选：详细说明（中文）>
+```
+
+## type 类型
+
+| type      | 说明     |
+| --------- | -------- |
+| `feat`    | 新功能   |
+| `fix`     | 修复 Bug |
+| `refactor`| 重构     |
+| `perf`    | 性能优化 |
+| `style`   | 样式修改 |
+| `test`    | 测试     |
+| `docs`    | 文档     |
+| `chore`   | 杂项     |
+| `ci`      | CI 配置  |
+| `revert`  | 回滚     |
+
+## scope 范围
+
+| scope     | 说明               |
+| --------- | ------------------ |
+| `server`  | 后端 apps/server   |
+| `web`     | 前端 apps/admin-web|
+| `shared`  | 共享包 packages    |
+| `root`    | 根级配置           |
+| `deps`    | 依赖更新           |
+| `docs`    | 文档               |
+
+## 示例
+
+```
+feat(server): 添加用户登录接口和 JWT 认证
+
+- 实现密码 bcrypt 加密存储
+- 集成 Access Token + Refresh Token 机制
+- 添加登录失败锁定策略
+
+fix(web): 修复菜单树展开异常
+
+refactor(server): 重构权限校验逻辑，提取为独立 Guard
+
+docs: 更新 API 文档中的认证接口说明
+
+chore(root): 升级 pnpm 到 10.x 版本
+```
