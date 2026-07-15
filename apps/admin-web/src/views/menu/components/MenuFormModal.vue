@@ -34,11 +34,11 @@ const formState = reactive({
   linkUrl: '',
   permission: '',
   sort: 0,
-  isLink: false,
-  isHidden: false,
-  isAffix: false,
-  keepAlive: true as boolean,
-  isIframe: false,
+  isLink: 0,
+  isHidden: 0,
+  isAffix: 0,
+  keepAlive: 0,
+  isIframe: 0,
 });
 
 const formRules = {
@@ -82,8 +82,8 @@ watch(
     resetForm();
     if (props.mode === 'edit' && props.menuData) {
       const row = props.menuData;
-      formState.parentId = row.parentId;
-      formState.type = row.type;
+      formState.parentId = row.parentId ?? null;
+      formState.type = row.type ?? 'dir';
       formState.name = row.name ?? '';
       formState.routeName = row.routeName ?? '';
       formState.path = row.path ?? '';
@@ -92,22 +92,21 @@ watch(
       formState.component = row.component ?? '';
       formState.linkUrl = row.linkUrl ?? '';
       formState.permission = row.permission ?? '';
-      formState.sort = row.sort;
-      formState.isLink = row.isLink;
-      formState.isHidden = row.isHidden;
-      formState.isAffix = row.isAffix;
-      formState.keepAlive = row.keepAlive ?? true;
-      formState.isIframe = row.isIframe;
+      formState.sort = row.sort ?? 0;
+      formState.isLink = row.isLink ? 1 : 0;
+      formState.isHidden = row.isHidden ?? 0;
+      formState.isAffix = row.isAffix ?? 0;
+      formState.keepAlive = row.keepAlive ?? 0;
+      formState.isIframe = row.isIframe ?? 0;
     } else if (props.mode === 'create' && props.parentMenu) {
-      formState.parentId = props.parentMenu._id;
-      formState.type = props.parentMenu.type === 'dir' ? 'menu' : props.parentMenu.type;
+      formState.parentId = props.parentMenu._id ?? null;
     }
   },
 );
 
 function resetForm() {
   formState.parentId = null;
-  formState.type = 'menu';
+  formState.type = 'dir';
   formState.name = '';
   formState.routeName = '';
   formState.path = '';
@@ -117,11 +116,11 @@ function resetForm() {
   formState.linkUrl = '';
   formState.permission = '';
   formState.sort = 0;
-  formState.isLink = false;
-  formState.isHidden = false;
-  formState.isAffix = false;
-  formState.keepAlive = true;
-  formState.isIframe = false;
+  formState.isLink = 0;
+  formState.isHidden = 0;
+  formState.isAffix = 0;
+  formState.keepAlive = 0;
+  formState.isIframe = 0;
 }
 
 // ─── 提交 ────────────────────────────────────────────────────
@@ -246,14 +245,11 @@ async function handleSubmit() {
             />
           </n-form-item>
         </n-grid-item>
-
         <n-grid-item :span="12" v-if="formState.type === 'button'">
           <n-form-item label="权限标识" path="permission">
             <n-input v-model:value="formState.permission" placeholder="如 system:user:read" />
           </n-form-item>
         </n-grid-item>
-      </n-grid>
-      <n-grid :cols="24" :x-gap="16">
         <n-grid-item :span="12">
           <n-form-item label="菜单排序" path="sort">
             <n-input-number
@@ -267,8 +263,8 @@ async function handleSubmit() {
         <n-grid-item :span="12" v-if="formState.type !== 'button'">
           <n-form-item label="是否隐藏" path="isHidden">
             <n-radio-group v-model:value="formState.isHidden">
-              <n-radio :value="true" label="隐藏" />
-              <n-radio :value="false" label="不隐藏" />
+              <n-radio :value="1" label="隐藏" />
+              <n-radio :value="0" label="不隐藏" />
             </n-radio-group>
           </n-form-item>
         </n-grid-item>
@@ -276,16 +272,16 @@ async function handleSubmit() {
         <n-grid-item :span="12" v-if="formState.type !== 'button'">
           <n-form-item label="页面缓存" path="keepAlive">
             <n-radio-group v-model:value="formState.keepAlive">
-              <n-radio :value="true" label="缓存" />
-              <n-radio :value="false" label="不缓存" />
+              <n-radio :value="1" label="缓存" />
+              <n-radio :value="0" label="不缓存" />
             </n-radio-group>
           </n-form-item>
         </n-grid-item>
         <n-grid-item :span="12" v-if="formState.type !== 'button'">
           <n-form-item label="是否固定" path="isAffix">
             <n-radio-group v-model:value="formState.isAffix">
-              <n-radio :value="true" label="固定" />
-              <n-radio :value="false" label="不固定" />
+              <n-radio :value="1" label="固定" />
+              <n-radio :value="0" label="不固定" />
             </n-radio-group>
           </n-form-item>
         </n-grid-item>
@@ -293,16 +289,16 @@ async function handleSubmit() {
         <n-grid-item :span="12" v-if="formState.type !== 'button'">
           <n-form-item label="是否外链" path="isLink">
             <n-radio-group v-model:value="formState.isLink">
-              <n-radio :value="true" label="是" />
-              <n-radio :value="false" label="否" />
+              <n-radio :value="1" label="是" />
+              <n-radio :value="0" label="否" />
             </n-radio-group>
           </n-form-item>
         </n-grid-item>
         <n-grid-item :span="12" v-if="formState.type !== 'button'">
           <n-form-item label="是否内嵌" path="isIframe">
             <n-radio-group v-model:value="formState.isIframe">
-              <n-radio :value="true" label="是" />
-              <n-radio :value="false" label="否" />
+              <n-radio :value="1" label="是" />
+              <n-radio :value="0" label="否" />
             </n-radio-group>
           </n-form-item>
         </n-grid-item>

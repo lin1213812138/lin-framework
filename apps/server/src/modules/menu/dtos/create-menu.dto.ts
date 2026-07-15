@@ -1,8 +1,15 @@
+/*
+ * @Author: 林翔 2276928094@qq.com
+ * @Date: 2026-07-05 07:15:05
+ * @LastEditors: 林翔 2276928094@qq.com
+ * @LastEditTime: 2026-07-15 20:59:19
+ * @FilePath: \lin-framework\apps\server\src\modules\menu\dtos\create-menu.dto.ts
+ * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
+ */
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import {
   IsString,
   IsOptional,
-  IsBoolean,
   IsNumber,
   MinLength,
   MaxLength,
@@ -13,7 +20,7 @@ export class CreateMenuDto {
   @IsString({ message: '菜单名称必须是字符串' })
   @MinLength(1, { message: '菜单名称不能为空' })
   @MaxLength(32, { message: '菜单名称最多 32 个字符' })
-  name: string;
+  name!: string;
 
   @ApiPropertyOptional({ description: '路由名称' })
   @IsOptional()
@@ -61,35 +68,27 @@ export class CreateMenuDto {
 
   @ApiProperty({ description: '类型：dir / menu / button' })
   @IsString({ message: '类型必须是字符串' })
-  type: string;
+  type!: string;
 
-  @ApiPropertyOptional({ description: '是否外链', default: false })
+  @ApiPropertyOptional({ description: '是否外链', default: 0 })
   @IsOptional()
-  @IsBoolean()
-  isLink?: boolean;
-
-  @ApiPropertyOptional({ description: '是否隐藏', default: false })
+  @IsNumber()
+  isLink?: number;
+  @ApiPropertyOptional({ description: '是否隐藏', default: 0 })
   @IsOptional()
-  @IsBoolean()
-  isHidden?: boolean;
-
-  @ApiPropertyOptional({ description: '是否固定', default: false })
+  @IsNumber()
+  isHidden?: number;
+  @ApiPropertyOptional({ description: '是否固定', default: 0 })
   @IsOptional()
-  @IsBoolean()
-  isAffix?: boolean;
-
-  @ApiPropertyOptional({ description: '是否总是显示', default: false })
-  @IsOptional()
-  @IsBoolean()
-  isAlwaysShow?: boolean;
-
+  @IsNumber()
+  isAffix?: number;
   @ApiPropertyOptional({ description: '页面缓存', default: true })
   @IsOptional()
-  @IsBoolean()
-  keepAlive?: boolean;
+  @IsNumber()
+  keepAlive?: number;
 
-  @ApiPropertyOptional({ description: '是否内嵌', default: false })
+  @ApiPropertyOptional({ description: '是否内嵌', default: 0 })
   @IsOptional()
-  @IsBoolean()
-  isIframe?: boolean;
+  @IsNumber()
+  isIframe?: number;
 }

@@ -14,7 +14,7 @@ export type MenuDocument = HydratedDocument<Menu>;
 export class Menu extends BaseEntity {
   /** 菜单名称 */
   @Prop({ required: true, trim: true })
-  name: string;
+  name?: string;
 
   /** 路由路径（菜单类型必填） */
   @Prop({ trim: true })
@@ -42,7 +42,7 @@ export class Menu extends BaseEntity {
 
   /** 上级菜单 ID，null 表示根节点 */
   @Prop({ type: String, default: null, index: true })
-  parentId: string | null;
+  parentId!: string | null;
 
   /** 绑定的权限标识（按钮类型必填） */
   @Prop({ trim: true })
@@ -50,39 +50,35 @@ export class Menu extends BaseEntity {
 
   /** 排序值，越小越靠前 */
   @Prop({ default: 0 })
-  sort: number;
+  sort!: number;
 
   /** 类型：dir 目录 / menu 菜单 / button 按钮 */
   @Prop({ required: true, default: 'menu', trim: true })
-  type: string;
+  type!: string;
 
   /** 是否外链 */
-  @Prop({ default: false })
-  isLink: boolean;
+  @Prop({ default: 0 })
+  isLink!: number;
 
   /** 是否隐藏 */
-  @Prop({ default: false })
-  isHidden: boolean;
+  @Prop({ default: 0 })
+  isHidden!: number;
 
   /** 是否固定 */
-  @Prop({ default: false })
-  isAffix: boolean;
-
-  /** 是否总是显示 */
-  @Prop({ default: false })
-  isAlwaysShow: boolean;
+  @Prop({ default: 0 })
+  isAffix!: number;
 
   /** 页面缓存 */
-  @Prop({ default: true })
-  keepAlive: boolean;
+  @Prop({ default: 0 })
+  keepAlive!: number;
 
   /** 是否内嵌 */
-  @Prop({ default: false })
-  isIframe: boolean;
+  @Prop({ default: 0 })
+  isIframe!: number;
 
   /** 状态：1-启用 / 0-禁用 */
   @Prop({ default: 1, type: Number })
-  status: number;
+  status!: number;
 }
 
 export const MenuSchema = SchemaFactory.createForClass(Menu);
