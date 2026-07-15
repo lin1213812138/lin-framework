@@ -37,7 +37,7 @@ const formState = reactive({
   isLink: 0,
   isHidden: 0,
   isAffix: 0,
-  keepAlive: 0,
+  keepAlive: 1,
   isIframe: 0,
 });
 
@@ -61,7 +61,7 @@ function toTreeOptions(nodes: MenuTreeNode[]): TreeSelectOption[] {
 const menuTreeOptions = computed(() => {
   const options = toTreeOptions(props.menuTree);
   // 根节点选项
-  options.unshift({ label: '根菜单（无上级）', value: null });
+  // options.unshift({ label: '根菜单（无上级）', value: null });
   return options;
 });
 
@@ -94,10 +94,10 @@ watch(
       formState.permission = row.permission ?? '';
       formState.sort = row.sort ?? 0;
       formState.isLink = row.isLink ? 1 : 0;
-      formState.isHidden = row.isHidden ?? 0;
-      formState.isAffix = row.isAffix ?? 0;
-      formState.keepAlive = row.keepAlive ?? 0;
-      formState.isIframe = row.isIframe ?? 0;
+      formState.isHidden = row.isHidden ? 1 : 0;
+      formState.isAffix = row.isAffix ? 1 : 0;
+      formState.keepAlive = row.keepAlive ? 1 : 0;
+      formState.isIframe = row.isIframe ? 1 : 0;
     } else if (props.mode === 'create' && props.parentMenu) {
       formState.parentId = props.parentMenu._id ?? null;
     }
@@ -119,7 +119,7 @@ function resetForm() {
   formState.isLink = 0;
   formState.isHidden = 0;
   formState.isAffix = 0;
-  formState.keepAlive = 0;
+  formState.keepAlive = 1;
   formState.isIframe = 0;
 }
 
@@ -226,23 +226,14 @@ async function handleSubmit() {
             <n-input v-model:value="formState.redirect" placeholder="请输入路由重定向" />
           </n-form-item>
         </n-grid-item>
-        <n-grid-item :span="12" v-if="formState.type !== 'button'">
-          <n-form-item label="菜单图标" path="icon">
-            <IconSelector v-model:value="formState.icon" />
-          </n-form-item>
-        </n-grid-item>
-
-        <n-grid-item :span="12" v-if="formState.type !== 'button'">
+        <n-grid-item :span="12" v-if="formState.type === 'menu'">
           <n-form-item label="组件路径" path="component">
             <n-input v-model:value="formState.component" placeholder="组件路径" />
           </n-form-item>
         </n-grid-item>
         <n-grid-item :span="12" v-if="formState.type !== 'button'">
-          <n-form-item label="链接地址" path="linkUrl">
-            <n-input
-              v-model:value="formState.linkUrl"
-              placeholder="外链/内嵌时链接地址 (http://xxx.com)"
-            />
+          <n-form-item label="菜单图标" path="icon">
+            <IconSelector v-model:value="formState.icon" />
           </n-form-item>
         </n-grid-item>
         <n-grid-item :span="12" v-if="formState.type === 'button'">
@@ -286,14 +277,14 @@ async function handleSubmit() {
           </n-form-item>
         </n-grid-item>
 
-        <n-grid-item :span="12" v-if="formState.type !== 'button'">
-          <n-form-item label="是否外链" path="isLink">
-            <n-radio-group v-model:value="formState.isLink">
-              <n-radio :value="1" label="是" />
-              <n-radio :value="0" label="否" />
-            </n-radio-group>
-          </n-form-item>
-        </n-grid-item>
+        <!--        <n-grid-item :span="12" v-if="formState.type !== 'button'">-->
+        <!--          <n-form-item label="是否外链" path="isLink">-->
+        <!--            <n-radio-group v-model:value="formState.isLink">-->
+        <!--              <n-radio :value="1" label="是" />-->
+        <!--              <n-radio :value="0" label="否" />-->
+        <!--            </n-radio-group>-->
+        <!--          </n-form-item>-->
+        <!--        </n-grid-item>-->
         <n-grid-item :span="12" v-if="formState.type !== 'button'">
           <n-form-item label="是否内嵌" path="isIframe">
             <n-radio-group v-model:value="formState.isIframe">

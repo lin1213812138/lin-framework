@@ -26,10 +26,10 @@ const todos = ref([
 
 /* ---------- 快捷入口 ---------- */
 const quickActions = [
-  { label: '用户管理', path: '/users', icon: '👥', color: '#2080f0' },
-  { label: '角色管理', path: '/roles', icon: '🔐', color: '#18a058' },
+  { label: '用户管理', path: '/system/user', icon: '👥', color: '#2080f0' },
+  { label: '角色管理', path: '/system/role', icon: '🔐', color: '#18a058' },
   { label: '文件管理', path: '/files', icon: '📁', color: '#f0a020' },
-  { label: '菜单管理', path: '/menus', icon: '📋', color: '#d03050' },
+  { label: '菜单管理', path: '/system/menu', icon: '📋', color: '#d03050' },
   { label: '权限管理', path: '/permissions', icon: '🔑', color: '#7c3aed' },
 ];
 

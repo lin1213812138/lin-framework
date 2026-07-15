@@ -1,9 +1,10 @@
 <script setup lang="ts">
 import { onMounted, ref, h } from 'vue';
 import type { DataTableColumn } from 'naive-ui';
-import { NTag, NButton, NPopconfirm, useMessage, useDialog } from 'naive-ui';
+import { NTag, NButton, NPopconfirm, NIcon, useMessage, useDialog } from 'naive-ui';
 import { getMenuTree, deleteMenu } from '@/api/menu';
 import type { MenuTreeNode } from '@/api/menu';
+import { ICON_MAP } from '@/constants/icons';
 import MenuFormModal from './components/MenuFormModal.vue';
 
 // ─── 状态 ────────────────────────────────────────────────────
@@ -21,14 +22,14 @@ const formMode = ref<'create' | 'edit'>('create');
 const selectedMenu = ref<Partial<MenuTreeNode> | null>(null);
 const parentMenu = ref<Partial<MenuTreeNode> | null>(null);
 
-function openCreate(parent?: MenuTreeNode) {
+function openCreate(parent?: FlatMenuNode) {
   formMode.value = 'create';
   selectedMenu.value = null;
   parentMenu.value = parent ?? null;
   showFormModal.value = true;
 }
 
-function openEdit(row: MenuTreeNode) {
+function openEdit(row: FlatMenuNode) {
   formMode.value = 'edit';
   selectedMenu.value = row;
   parentMenu.value = null;
@@ -57,7 +58,7 @@ async function loadTree() {
 
 // ─── 删除 ────────────────────────────────────────────────────
 
-function handleDelete(row: MenuTreeNode) {
+function handleDelete(row: FlatMenuNode) {
   dialog.warning({
     title: '确认删除',
     content: `确定要删除菜单「${row.name}」吗？子菜单将一并删除。`,
@@ -92,18 +93,21 @@ function getTypeTag(type: string) {
 }
 
 /** 展平树形数据以支持树形表格 */
-function flattenTree(nodes: MenuTreeNode[], level = 0): Array<MenuTreeNode & { _level: number }> {
-  const result: Array<MenuTreeNode & { _level: number }> = [];
+type FlatMenuNode = Omit<MenuTreeNode, 'children'> & { _level: number };
+
+function flattenTree(nodes: MenuTreeNode[], level = 0): FlatMenuNode[] {
+  const result: FlatMenuNode[] = [];
   for (const node of nodes) {
-    result.push({ ...node, _level: level });
-    if (node.children?.length) {
-      result.push(...flattenTree(node.children, level + 1));
+    const { children, ...rest } = node;
+    result.push({ ...rest, _level: level });
+    if (children?.length) {
+      result.push(...flattenTree(children, level + 1));
     }
   }
   return result;
 }
 
-const flatData = ref<Array<MenuTreeNode & { _level: number }>>([]);
+const flatData = ref<FlatMenuNode[]>([]);
 
 function refreshFlatData() {
   flatData.value = flattenTree(treeData.value);
@@ -111,22 +115,24 @@ function refreshFlatData() {
 
 // ─── 表格列 ──────────────────────────────────────────────────
 
-const columns: DataTableColumn<MenuTreeNode & { _level: number }>[] = [
+const columns: DataTableColumn<FlatMenuNode>[] = [
   {
     title: '名称',
     key: 'name',
     width: 240,
     render(row) {
       const indent = row._level * 24;
+      const iconName = row.icon ?? '';
+      const IconComponent = ICON_MAP[iconName];
+      const iconVNode = IconComponent
+        ? h(NIcon, { size: 16 }, { default: () => h(IconComponent) })
+        : null;
       return h(
         'div',
         {
           style: { paddingLeft: `${indent}px`, display: 'flex', alignItems: 'center', gap: '8px' },
         },
-        [
-          row.icon ? h('span', { style: { fontSize: '16px' } }, row.icon) : null,
-          h('span', row.name),
-        ],
+        [iconVNode, h('span', row.name)],
       );
     },
   },
@@ -215,7 +221,7 @@ onMounted(async () => {
         :columns="columns"
         :data="flatData"
         :loading="loading"
-        :row-key="(row: MenuTreeNode) => row._id"
+        :row-key="(row: FlatMenuNode) => row._id"
         :bordered="true"
         striped
       />

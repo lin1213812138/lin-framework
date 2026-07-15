@@ -1,3 +1,11 @@
+/*
+ * @Author: 林翔 2276928094@qq.com
+ * @Date: 2026-07-05 07:15:35
+ * @LastEditors: 林翔 2276928094@qq.com
+ * @LastEditTime: 2026-07-15 21:47:36
+ * @FilePath: \lin-framework\apps\server\src\modules\menu\repositories\menu.repository.ts
+ * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
+ */
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';

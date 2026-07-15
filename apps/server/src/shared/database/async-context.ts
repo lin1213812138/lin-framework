@@ -10,4 +10,6 @@ export interface UserContextValue {
  *
  * 由 UserContextInterceptor 在请求入口处初始化。
  */
-export const userContext = new AsyncLocalStorage<UserContextValue | undefined>();
+export const userContext = new AsyncLocalStorage<
+  UserContextValue | undefined
+>();

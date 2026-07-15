@@ -14,12 +14,10 @@ const router = useRouter();
 
 /** 面包屑：首页（仪表盘）为固定第一级，当前页面为第二级 */
 const breadcrumbItems = computed<BreadcrumbItem[]>(() => {
-  const items: BreadcrumbItem[] = [
-    { title: '仪表盘', name: 'Dashboard', isCurrent: false },
-  ];
+  const items: BreadcrumbItem[] = [{ title: '仪表盘', name: 'Dashboard', isCurrent: false }];
 
   // 取当前子路由（跳过根路径 '/'）
-  const currentRoute = route.matched.find(r => r.path !== '/' && r.path !== '');
+  const currentRoute = route.matched.find((r) => r.path !== '/' && r.path !== '');
   if (currentRoute && currentRoute.name !== 'Dashboard') {
     items.push({
       title: (currentRoute.meta?.title as string) || String(currentRoute.name ?? ''),

@@ -15,12 +15,12 @@ export interface MenuInfo {
   sort: number;
   type: string;
   status: number;
-  isLink: boolean;
-  isHidden: boolean;
-  isAffix: boolean;
-  isAlwaysShow: boolean;
-  keepAlive: boolean;
-  isIframe: boolean;
+  isLink: number;
+  isHidden: number;
+  isAffix: number;
+  isAlwaysShow: number;
+  keepAlive: number;
+  isIframe: number;
   createDate: number;
 }
 
@@ -56,12 +56,12 @@ export function createMenu(data: {
   permission?: string;
   sort?: number;
   type: string;
-  isLink?: boolean;
-  isHidden?: boolean;
-  isAffix?: boolean;
-  isAlwaysShow?: boolean;
-  keepAlive?: boolean;
-  isIframe?: boolean;
+  isLink?: number;
+  isHidden?: number;
+  isAffix?: number;
+  isAlwaysShow?: number;
+  keepAlive?: number;
+  isIframe?: number;
 }) {
   return request.post<ApiResponse<MenuInfo>>('/menus', data);
 }
@@ -82,12 +82,12 @@ export function updateMenu(
     sort?: number;
     type?: string;
     status?: number;
-    isLink?: boolean;
-    isHidden?: boolean;
-    isAffix?: boolean;
-    isAlwaysShow?: boolean;
-    keepAlive?: boolean;
-    isIframe?: boolean;
+    isLink?: number;
+    isHidden?: number;
+    isAffix?: number;
+    isAlwaysShow?: number;
+    keepAlive?: number;
+    isIframe?: number;
   },
 ) {
   return request.patch<ApiResponse<MenuInfo>>(`/menus/${id}`, data);

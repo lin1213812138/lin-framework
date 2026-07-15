@@ -59,9 +59,7 @@ export class MenuService {
 
     // RBAC 未就绪时返回全部菜单
     if (permissionCodes.length === 0) {
-      const tree = this.buildTree(all.filter((m) => m.type !== 'button'));
-      tree.unshift(this.createDashboardNode());
-      return tree;
+      return this.buildTree(all.filter((m) => m.type !== 'button'));
     }
 
     // 筛选用户有权访问的菜单
@@ -75,9 +73,10 @@ export class MenuService {
       return permissionCodes.includes(menu.permission);
     });
 
-    const tree = this.pruneEmptyDirs(this.buildTree(visible));
-    tree.unshift(this.createDashboardNode());
-    return tree;
+    const tree = this.buildTree(visible);
+
+    // 递归移除没有子菜单的目录
+    return this.pruneEmptyDirs(tree);
   }
 
   // ─── Private ──────────────────────────────────────────────

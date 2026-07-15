@@ -1,22 +1,12 @@
 <script setup lang="ts">
 import { h, onMounted, ref } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import type { Component, MenuOption } from 'naive-ui';
+import type { MenuOption } from 'naive-ui';
 import { NIcon } from 'naive-ui';
-import {
-  BarChartOutline,
-  ConstructOutline,
-  FolderOutline,
-  GridOutline,
-  KeyOutline,
-  MenuOutline,
-  PersonOutline,
-  ShieldCheckmarkOutline,
-  SpeedometerOutline,
-} from '@vicons/ionicons5';
 import { useAppStore } from '@/stores';
 import type { MenuTreeNode } from '@/api/menu';
 import { getUserMenus } from '@/api/menu';
+import { ICON_MAP } from '@/constants/icons';
 
 const router = useRouter();
 const route = useRoute();
@@ -25,18 +15,8 @@ const appStore = useAppStore();
 const menuOptions = ref<MenuOption[]>([]);
 const loadingMenus = ref(true);
 
-/** 图标映射 */
-const iconMap: Record<string, Component> = {
-  dashboard: GridOutline,
-  console: SpeedometerOutline,
-  workbench: ConstructOutline,
-  analysis: BarChartOutline,
-  user: PersonOutline,
-  role: ShieldCheckmarkOutline,
-  menu: MenuOutline,
-  permission: KeyOutline,
-  file: FolderOutline,
-};
+/** 图标映射（来自共享注册表） */
+const iconMap = ICON_MAP;
 
 function getIcon(name?: string) {
   const IconComponent = iconMap[name ?? ''];
@@ -66,21 +46,24 @@ function toMenuOptions(nodes: MenuTreeNode[]): MenuOption[] {
   });
 }
 
+/** 仪表盘菜单（始终显示在侧边栏首位，不依赖后端配置） */
+const DASHBOARD_MENU: MenuOption = {
+  label: '主控台',
+  key: '/dashboard',
+  icon: getIcon('dashboard'),
+  children: [
+    { label: '控制台', key: '/dashboard/console', icon: getIcon('console') },
+    { label: '工作台', key: '/dashboard/workbench', icon: getIcon('workbench') },
+    { label: '分析页', key: '/dashboard/analysis', icon: getIcon('analysis') },
+  ],
+};
+
 /** 静态菜单（数据库无菜单数据时的后备方案） */
 const STATIC_MENUS: MenuOption[] = [
-  {
-    label: '主控台',
-    key: '/dashboard',
-    icon: getIcon('dashboard'),
-    children: [
-      { label: '控制台', key: '/dashboard/console', icon: getIcon('console') },
-      { label: '工作台', key: '/dashboard/workbench', icon: getIcon('workbench') },
-      { label: '分析页', key: '/dashboard/analysis', icon: getIcon('analysis') },
-    ],
-  },
-  { label: '用户管理', key: '/users', icon: getIcon('user') },
-  { label: '角色管理', key: '/roles', icon: getIcon('role') },
-  { label: '菜单管理', key: '/menus', icon: getIcon('menu') },
+  DASHBOARD_MENU,
+  { label: '用户管理', key: '/system/user', icon: getIcon('user') },
+  { label: '角色管理', key: '/system/role', icon: getIcon('role') },
+  { label: '菜单管理', key: '/system/menu', icon: getIcon('menu') },
   { label: '权限管理', key: '/permissions', icon: getIcon('permission') },
   { label: '文件管理', key: '/files', icon: getIcon('file') },
 ];
@@ -91,7 +74,7 @@ async function loadMenus() {
     const res = await getUserMenus();
     const tree = res.data.data;
     if (tree && tree.length > 0) {
-      menuOptions.value = toMenuOptions(tree);
+      menuOptions.value = [DASHBOARD_MENU, ...toMenuOptions(tree)];
     } else {
       // 返回空数据时使用静态菜单
       menuOptions.value = STATIC_MENUS;

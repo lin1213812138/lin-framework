@@ -8,7 +8,10 @@ import type { ValidationError } from 'class-validator';
 import { ConfigService } from '@nestjs/config';
 
 import { AllExceptionsFilter } from '@/core/filters';
-import { TransformInterceptor, UserContextInterceptor } from '@/core/interceptors';
+import {
+  TransformInterceptor,
+  UserContextInterceptor,
+} from '@/core/interceptors';
 import { JwtAuthGuard } from '@/core/guards';
 
 const validationMessages: Record<string, string> = {
@@ -79,7 +82,10 @@ async function bootstrap() {
   app.useGlobalGuards(new JwtAuthGuard(reflector));
 
   app.useGlobalFilters(new AllExceptionsFilter());
-  app.useGlobalInterceptors(new TransformInterceptor(), new UserContextInterceptor());
+  app.useGlobalInterceptors(
+    new TransformInterceptor(),
+    new UserContextInterceptor(),
+  );
 
   app.useBodyParser('json', { limit: '1mb' });
 

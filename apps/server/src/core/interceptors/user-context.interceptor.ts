@@ -1,4 +1,8 @@
-import type { NestInterceptor, ExecutionContext, CallHandler } from '@nestjs/common';
+import type {
+  NestInterceptor,
+  ExecutionContext,
+  CallHandler,
+} from '@nestjs/common';
 import { Injectable } from '@nestjs/common';
 import type { Observable } from 'rxjs';
 import { userContext } from '@/shared/database/async-context';
@@ -11,7 +15,9 @@ import { userContext } from '@/shared/database/async-context';
 @Injectable()
 export class UserContextInterceptor implements NestInterceptor {
   intercept(context: ExecutionContext, next: CallHandler): Observable<unknown> {
-    const request = context.switchToHttp().getRequest<{ user?: { id: string; username: string } }>();
+    const request = context
+      .switchToHttp()
+      .getRequest<{ user?: { id: string; username: string } }>();
     return userContext.run(request.user, () => next.handle());
   }
 }

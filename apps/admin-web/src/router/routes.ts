@@ -41,22 +41,27 @@ const routes: RouteRecordRaw[] = [
         ],
       },
       {
-        path: 'users',
-        name: 'User',
-        component: () => import('@/views/user/index.vue'),
-        meta: { title: '用户管理', permission: 'user:read' },
-      },
-      {
-        path: 'roles',
-        name: 'Role',
-        component: () => import('@/views/role/index.vue'),
-        meta: { title: '角色管理', permission: 'role:read' },
-      },
-      {
-        path: 'menus',
-        name: 'Menu',
-        component: () => import('@/views/menu/index.vue'),
-        meta: { title: '菜单管理', permission: 'menu:read' },
+        path: 'system',
+        children: [
+          {
+            path: 'user',
+            name: 'User',
+            component: () => import('@/views/system/user/index.vue'),
+            meta: { title: '用户管理', permission: 'user:read' },
+          },
+          {
+            path: 'role',
+            name: 'Role',
+            component: () => import('@/views/system/role/index.vue'),
+            meta: { title: '角色管理', permission: 'role:read' },
+          },
+          {
+            path: 'menu',
+            name: 'Menu',
+            component: () => import('@/views/system/menu/index.vue'),
+            meta: { title: '菜单管理', permission: 'menu:read' },
+          },
+        ],
       },
       {
         path: 'permissions',
